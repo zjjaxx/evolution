@@ -1,0 +1,23 @@
+{
+  "name": "evolution",
+  "version": "1.0.0",
+  "description": "记录个人学习收获和心得，包括但不限制于：es6、node、vue、小程序、浏览器、网络、设计模式、算法和数据结构、web安全、性能优化、工程化等。天地一浮云，此身乃毫末，自勉之",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zjjaxx/evolution.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zjjaxx/evolution/issues"
+  },
+  "homepage": "https://github.com/zjjaxx/evolution#readme",
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
