@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app"></div>
+    <div id="listen"></div>
+    <div id="stack"></div>
+    <div id="scheduler"></div>
+    <div id="lazy"></div>
+    <button id="btn">add</button>
+    <button id="btnStack">btnStack</button>
+    <button id="schedulerBtn">scheduler</button>
+    <button id="change">change</button>
+    <button id="lazyBtn">lazyBtn</button>
+    <script src="./reactive.js"></script>
+    <script>
+        const test=reactive({name:"zjjaxx",age:1,stackAge:1})
+        const isChangeReactive=reactive({isChange:true})
+        const app=document.getElementById("app")
+        const stack=document.getElementById("stack")
+        const listen=document.getElementById("listen")
+        const scheduler=document.getElementById("scheduler")
+        const lazy=document.getElementById("lazy")
+        const btn=document.getElementById("btn")
+        const btnStack=document.getElementById("btnStack")
+        const change=document.getElementById("change")
+        const schedulerBtn=document.getElementById("schedulerBtn")
+        const lazyBtn=document.getElementById("lazyBtn")
+        effect(()=>{
+            app.innerText=test.name+' age is '+test.age
+        })
+        effect(()=>{
+            listen.innerText=isChangeReactive.isChange?test.age:'no listen'
+        })
+        effect(()=>{
+            console.log("effect 3 trigger")
+            test.stackAge++
+            effect(()=>{
+                console.log("effect 4 trigger")
+                stack.innerText=test.name+' stack age is '+test.stackAge
+            })
+            stack.innerText=test.name+' stack age is '+test.stackAge
+        })
+        effect(()=>{
+            console.log("effect scheduler")
+            scheduler.innerText=test.name+' age is '+test.age
+        },{
+            scheduler(fn){
+                Promise.resolve().then(fn)
+            }
+        })
+      
+        btn.addEventListener('click',()=>{
+            test.age++
+        })
+        btnStack.addEventListener('click',()=>{
+            test.stackAge++
+        })
+        change.addEventListener("click",()=>{
+            isChangeReactive.isChange=!isChangeReactive.isChange
+        })
+        schedulerBtn.addEventListener("click",()=>{
+            test.age++
+            test.age+=2
+            console.log("立即执行")
+        })
+        lazyBtn.addEventListener("click",()=>{
+            test.age++
+            testComputed.value
+        })
+        const testComputed= computed(()=>{
+            console.log("computed exec", test.age)
+            return test.age
+        })
+        setTimeout(()=>{
+            testComputed.value
+            testComputed.value
+            testComputed.value
+        },1000)
+        effect(()=>{
+            console.log(testComputed.value)
+        })
+        console.log("wait computed")
+    </script>
+</body>
+</html>
