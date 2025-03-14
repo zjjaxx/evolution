@@ -85,6 +85,30 @@
             console.log(testComputed.value)
         })
         console.log("wait computed")
+        watch(test,(newValue,oldValue)=>{
+            console.log("newValue",newValue,"oldValue",oldValue)
+        },{
+            deep:true
+        })
+        watch(test,(newValue,oldValue)=>{
+            console.log("newValue",newValue,"oldValue",oldValue)
+        },{
+            flush:'post',
+            immediate:true,
+            deep:true
+        })
+        watch(test,(newValue,oldValue,onInvalidate)=>{
+            let expire=false
+            onInvalidate(()=>{
+                expire=true
+            })
+            setTimeout(()=>{
+                console.log("expire is",expire)
+            },5000)
+        },{
+            flush:'post',
+            deep:true
+        })
     </script>
 </body>
 </html>
