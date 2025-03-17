@@ -1,4 +1,27 @@
-[toc]
+## 目录
+- [link标签有什么作用](#link-------)
+  * [相关资料](#----)
+  * [面试回答](#----)
+- [iframe 有那些缺点？](#iframe-------)
+- [统计当前页面出现次数最多的标签](#---------------)
+- [如何找到当前页面出现次数前三多的 HTML 标签 最小堆](#-----------------html-------)
+- [跨域](#--)
+- [图片懒加载](#-----)
+  * [在vant 中使用了2种实现方式的兼容处理](#-vant-----2----------)
+- [cookie、sessionStorage与localStorage有何区别](#cookie-sessionstorage-localstorage----)
+  * [相关资料](#-----1)
+  * [面试回答](#-----1)
+- [浏览器中监听事件函数 [addEventListener](https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget/addEventListener) 第三个参数有那些值](#------------addeventlistener--https---developermozillaorg-zh-cn-docs-web-api-eventtarget-addeventlistener-----------)
+- [什么是事件委托，e.currentTarget 与 e.target 有何区别](#--------ecurrenttarget---etarget-----)
+- [DOM 中如何阻止事件默认行为，如何判断事件否可阻止？](#dom------------------------)
+- [在浏览器中如何获取剪切板中内容](#---------------)
+- [浏览器的剪切板中如何监听复制事件](#----------------)
+- [如何实现页面文本不可复制](#------------)
+- [如何取消请求的发送](#---------)
+- [二篇文章让你彻底搞懂浏览器的渲染机制](#------------------)
+- [异步加载 JS 脚本时，async 与 defer 有何区别](#-----js-----async---defer-----)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 ## link标签有什么作用
 
