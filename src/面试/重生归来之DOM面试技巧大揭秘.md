@@ -5,7 +5,9 @@
   - [面试回答](#面试回答)
 - [iframe 有那些缺点？](#iframe-有那些缺点)
 - [统计当前页面出现次数最多的标签](#统计当前页面出现次数最多的标签)
+  - [相关代码](#相关代码)
 - [如何找到当前页面出现次数前三多的 HTML 标签 最小堆](#如何找到当前页面出现次数前三多的-html-标签-最小堆)
+  - [相关代码](#相关代码-1)
 - [跨域](#跨域)
 - [图片懒加载](#图片懒加载)
   - [在vant 中使用了2种实现方式的兼容处理](#在vant-中使用了2种实现方式的兼容处理)
@@ -19,11 +21,19 @@
 - [浏览器的剪切板中如何监听复制事件](#浏览器的剪切板中如何监听复制事件)
 - [如何实现页面文本不可复制](#如何实现页面文本不可复制)
 - [如何取消请求的发送](#如何取消请求的发送)
+- [如何理解 JS 的异步？](#如何理解-js-的异步)
+  - [相关资料](#相关资料-2)
+  - [面试回答](#面试回答-2)
+- [阐述一下 JS 的事件循环](#阐述一下-js-的事件循环)
+  - [面试回答](#面试回答-3)
+- [JS 中的计时器能做到精确计时吗？为什么？](#js-中的计时器能做到精确计时吗为什么)
+  - [相关资料](#相关资料-3)
+  - [面试回答](#面试回答-4)
 - [二篇文章让你彻底搞懂浏览器的渲染机制](#二篇文章让你彻底搞懂浏览器的渲染机制)
 - [异步加载 JS 脚本时，async 与 defer 有何区别](#异步加载-js-脚本时async-与-defer-有何区别)
+- [Vue 中的 router 实现原理如何](#vue-中的-router-实现原理如何)
+- [浏览器中如何读取二进制信息](#浏览器中如何读取二进制信息)
 
-
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 ## link标签有什么作用
 
@@ -127,6 +137,8 @@
 
 ## 统计当前页面出现次数最多的标签
 
+### 相关代码
+
 ```javascript
 const getMostTag = () => {
     const allDoms = document.querySelectorAll("*")
@@ -153,6 +165,8 @@ getMostTag()
 ```
 
 ## 如何找到当前页面出现次数前三多的 HTML 标签 最小堆
+
+### 相关代码
 
 ```javascript
 const getTopThreeTag=()=>{
@@ -495,6 +509,103 @@ document.body.oncopy = e => {
 
    
 
+## 如何理解 JS 的异步？
+
+### 相关资料
+
+代码在执行过程中，会遇到一些无法立即处理的任务，比如：
+
+- 计时完成后需要执行的任务 —— `setTimeout`、`setInterval`
+- 网络通信完成后需要执行的任务 -- `XHR`、`Fetch`
+- 用户操作后需要执行的任务 -- `addEventListener`
+
+如果让渲染主线程等待这些任务的时机达到，就会导致主线程长期处于「阻塞」的状态，从而导致浏览器「卡死」
+
+![image-20220810104344296](http://mdrs.yuanjin.tech/img/202208101043348.png)
+
+**渲染主线程承担着极其重要的工作，无论如何都不能阻塞！**
+
+因此，浏览器选择**异步**来解决这个问题
+
+![image-20220810104858857](http://mdrs.yuanjin.tech/img/202208101048899.png)
+
+使用异步的方式，**渲染主线程永不阻塞**
+
+### 面试回答
+
+JS是一门单线程的语言，这是因为它运行在浏览器的渲染主线程中，而渲染主线程只有一个。
+
+而渲染主线程承担着诸多的工作，渲染页面、执行 JS 都在其中运行。
+
+如果使用同步的方式，就极有可能导致主线程产生阻塞，从而导致消息队列中的很多其他任务无法得到执行。这样一来，一方面会导致繁忙的主线程白白的消耗时间，另一方面导致页面无法及时更新，给用户造成卡死现象。
+
+所以浏览器采用异步的方式来避免。具体做法是当某些任务发生时，比如计时器、网络、事件监听，主线程将任务交给其他线程去处理，自身立即结束任务的执行，转而执行后续代码。当其他线程完成时，将事先传递的回调函数包装成任务，加入到消息队列的末尾排队，等待主线程调度执行。
+
+在这种异步模式下，浏览器永不阻塞，从而最大限度的保证了单线程的流畅运行。
+
+## 阐述一下 JS 的事件循环
+
+### 面试回答
+
+事件循环又叫做消息循环，是浏览器渲染主线程的工作方式。
+
+在 Chrome 的源码中，它开启一个死循环，每次循环从消息队列中取出第一个任务执行，而其他线程只需要在合适的时候将任务加入到队列末尾即可。
+
+过去把消息队列简单分为宏队列和微队列，这种说法目前已无法满足复杂的浏览器环境，取而代之的是一种更加灵活多变的处理方式。
+
+根据 W3C 官方的解释，每个任务有不同的类型，同类型的任务必须在同一个队列，不同的任务可以属于不同的队列。不同任务队列有不同的优先级，在一次事件循环中，由浏览器自行决定取哪一个队列的任务。但浏览器必须有一个微队列，微队列的任务一定具有最高的优先级，必须优先调度执行。
+
+## JS 中的计时器能做到精确计时吗？为什么？
+
+### 相关资料
+
+实现一个相对精准的倒计时
+
+```
+const newSetTimout = (callback: () => void, time: number) => {
+    const timeoutIdObj: { timeoutId?: NodeJS.Timeout } = {
+        timeoutId: undefined,
+    }
+
+    const startTime = new Date().getTime()
+    let count = 0
+    const innerSetTimeout = () => {
+        count++
+        // 理论时间
+        const theoreticalTime = startTime + 100 * count
+        // 实际时间
+        const realTime = new Date().getTime()
+        // 理论时间-实际时间
+        const diffTime = realTime - theoreticalTime
+        if (count * 100 >= time) {
+            callback()
+        } else {
+            timeoutIdObj.timeoutId = setTimeout(innerSetTimeout, 100 - diffTime)
+        }
+    }
+    timeoutIdObj.timeoutId = setTimeout(innerSetTimeout, 100)
+    return timeoutIdObj
+}
+export default newSetTimout
+```
+
+
+
+### 面试回答
+
+不行，因为：
+
+1. 计算机硬件没有原子钟，无法做到精确计时
+2. 操作系统的计时函数本身就有少量偏差，由于 JS 的计时器最终调用的是操作系统的函数，也就携带了这些偏差
+3. 按照 W3C 的标准，浏览器实现计时器时，如果嵌套层级超过 5 层，则会带有 4 毫秒的最少时间，这样在计时时间少于 4 毫秒时又带来了偏差
+4. 受事件循环的影响，计时器的回调函数只能在主线程空闲时运行，因此又带来了偏差
+
+实现一个比较精准的倒计时
+
+包装一个setTimeout,把倒计时时间分成整数个100毫秒的倒计时去执行，每次递归前判断理论时间和实际时间有没有差别，如果有，下次倒计时的时候100-差值做校准
+
+
+
 ## 二篇文章让你彻底搞懂浏览器的渲染机制
 
 [[渲染页面：浏览器的工作原理](https://developer.mozilla.org/zh-CN/docs/Web/Performance/How_browsers_work)](https://developer.mozilla.org/zh-CN/docs/Web/Performance/How_browsers_work)
@@ -508,3 +619,24 @@ document.body.oncopy = e => {
 [[一张图看懂async和defer区别](https://gist.github.com/jakub-g/385ee6b41085303a53ad92c7c8afd7a6)](https://gist.github.com/jakub-g/385ee6b41085303a53ad92c7c8afd7a6)
 
 ![async-defer](https://html.spec.whatwg.org/images/asyncdefer.svg)
+
+而 `defer` 与 `async` 的区别如下:
+
+- 相同点: **异步加载 (fetch)**
+- 不同点:
+  - async 加载(fetch)完成后立即执行 (execution)，因此可能会阻塞 DOM 解析；
+  - defer 加载(fetch)完成后延迟到 DOM 解析完成后才会执行(execution)**，但会在事件 `DomContentLoaded` 之前
+
+## Vue 中的 router 实现原理如何
+
+大概流程 拿history模式举例
+
+1. 新建history对象，通过base和URL解析出当前的跳转路径，同时监听[popstate](https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event)事件***注意popstate只能监听到go、back事件***[popstate](https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event)
+
+2. 新建router实例，通过传入的路由递归遍历生成matchers数组和相对应matcherMap,遍历过程中将path解析成tokens,然后动态拼接成正则，这样就可以通过URL和matchers数组精确匹配到父子组件，同时也可以根据name和matcherMap拿到父子组件。初始化一个响应式的当前路由对象注入到整个app
+3. 注册routerLink和routerView组件，routerView组件可以通过当前路由对象的matched获取匹配到的父子组件数组，同时通过注入deep深度默认0,渲染加一依次渲染每一个routerView组件
+4. 路由跳转通过负值当前的响应式路由对象，可以做到routerView组件响应式渲染，然后通过history.pushState/replaceState保存路由堆栈记录
+
+## 浏览器中如何读取二进制信息
+
+![](https://shanyue.tech/assets/img/transform.77175c26.jpg)
