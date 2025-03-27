@@ -3,17 +3,21 @@
 - [link标签有什么作用](#link标签有什么作用)
   - [相关资料](#相关资料)
   - [面试回答](#面试回答)
-- [iframe 有那些缺点？](#iframe-有那些缺点)
+- [如何实现浏览器内多个标签页之间的通信?](#如何实现浏览器内多个标签页之间的通信)
+  - [相关资料](#相关资料-1)
+  - [面试回答](#面试回答-1)
 - [统计当前页面出现次数最多的标签](#统计当前页面出现次数最多的标签)
   - [相关代码](#相关代码)
 - [如何找到当前页面出现次数前三多的 HTML 标签 最小堆](#如何找到当前页面出现次数前三多的-html-标签-最小堆)
   - [相关代码](#相关代码-1)
 - [跨域](#跨域)
+  - [相关资料](#相关资料-2)
+  - [面试回答](#面试回答-2)
 - [图片懒加载](#图片懒加载)
-  - [在vant 中使用了2种实现方式的兼容处理](#在vant-中使用了2种实现方式的兼容处理)
+  - [相关资料](#相关资料-3)
 - [cookie、sessionStorage与localStorage有何区别](#cookiesessionstorage与localstorage有何区别)
-  - [相关资料](#相关资料-1)
-  - [面试回答](#面试回答-1)
+  - [相关资料](#相关资料-4)
+  - [面试回答](#面试回答-3)
 - [浏览器中监听事件函数 addEventListener 第三个参数有那些值](#浏览器中监听事件函数-addeventlistener-第三个参数有那些值)
 - [什么是事件委托，e.currentTarget 与 e.target 有何区别](#什么是事件委托ecurrenttarget-与-etarget-有何区别)
 - [DOM 中如何阻止事件默认行为，如何判断事件否可阻止？](#dom-中如何阻止事件默认行为如何判断事件否可阻止)
@@ -22,14 +26,19 @@
 - [如何实现页面文本不可复制](#如何实现页面文本不可复制)
 - [如何取消请求的发送](#如何取消请求的发送)
 - [如何理解 JS 的异步？](#如何理解-js-的异步)
-  - [相关资料](#相关资料-2)
-  - [面试回答](#面试回答-2)
-- [阐述一下 JS 的事件循环](#阐述一下-js-的事件循环)
-  - [面试回答](#面试回答-3)
-- [JS 中的计时器能做到精确计时吗？为什么？](#js-中的计时器能做到精确计时吗为什么)
-  - [相关资料](#相关资料-3)
+  - [相关资料](#相关资料-5)
   - [面试回答](#面试回答-4)
-- [二篇文章让你彻底搞懂浏览器的渲染机制](#二篇文章让你彻底搞懂浏览器的渲染机制)
+- [阐述一下 JS 的事件循环](#阐述一下-js-的事件循环)
+  - [面试回答](#面试回答-5)
+- [JS 中的计时器能做到精确计时吗？为什么？](#js-中的计时器能做到精确计时吗为什么)
+  - [相关资料](#相关资料-6)
+  - [面试回答](#面试回答-6)
+- [从输入一个URL到渲染完成，浏览器做了什么？](#从输入一个url到渲染完成浏览器做了什么)
+  - [相关资料](#相关资料-7)
+  - [面试回答](#面试回答-7)
+- [什么事reflow](#什么事reflow)
+- [什么是 repaint？](#什么是-repaint)
+- [为什么 transform 的效率高？](#为什么-transform-的效率高)
 - [异步加载 JS 脚本时，async 与 defer 有何区别](#异步加载-js-脚本时async-与-defer-有何区别)
 - [Vue 中的 router 实现原理如何](#vue-中的-router-实现原理如何)
 - [浏览器中如何读取二进制信息](#浏览器中如何读取二进制信息)
@@ -131,9 +140,72 @@
 
    资源完整性校验（Integrity）
 
-##  iframe 有那些缺点？
+## 如何实现浏览器内多个标签页之间的通信?
 
+### 相关资料
 
+1. 使用 WebSocket，通信的标签页连接同一个服务器，发送消息到服务器后，服务器推送消息给所有连接的客户端。
+
+2. 可以调用 localStorage本地存储方式，localStorge 另一个浏览上下文里被添加、修改或删除时，它都会触
+        发一个 storage 事件，我们通过监听 storage 事件，控制它的值来进行页面信息通信；
+
+   **标签页 A（发送数据）**
+
+   ```js
+   // 存储数据并触发 storage 事件
+   localStorage.setItem('sharedData', JSON.stringify({ key: 'value' }));
+   ```
+
+   **标签页 B（接收数据）**
+
+   ```js
+   // 监听 storage 事件
+   window.addEventListener('storage', (e) => {
+     if (e.key === 'sharedData') {
+       const data = JSON.parse(e.newValue);
+       console.log('收到数据:', data); // 输出 { key: 'value' }
+     }
+   });
+   ```
+
+3. 如果我们能够获得对应标签页的引用，通过 postMessage 方法也是可以实现多个标签页通信的。
+
+   语法
+
+   ```js
+   otherWindow.postMessage(message, targetOrigin, [transfer]);// 如果是不同源的targetOrigin需要填写目标域名
+   ```
+
+   ```js
+   /*
+    * 弹出页 popup 域名是 http://example.com，以下是 script 标签中的代码：
+    */
+   
+   //当 A 页面 postMessage 被调用后，这个 function 被 addEventListener 调用
+   function receiveMessage(event) {
+     // 我们能信任信息来源吗？
+     if (event.origin !== "http://example.com:8080") return;
+   
+     // event.source 就当前弹出页的来源页面
+     // event.data 是 "hello there!"
+   
+     // 假设你已经验证了所受到信息的 origin (任何时候你都应该这样做), 一个很方便的方式就是把 event.source
+     // 作为回信的对象，并且把 event.origin 作为 targetOrigin
+     event.source.postMessage(
+       "hi there yourself!  the secret response " + "is: rheeeeet!",
+       event.origin,
+     );
+   }
+   
+   window.addEventListener("message", receiveMessage, false);
+   
+   ```
+
+   ### 面试回答
+
+   1. 使用 WebSocket，通信的标签页连接同一个服务器，发送消息到服务器后，服务器推送消息给所有连接的客户端。
+   2. 可以调用 localStorage本地存储方式，我们通过监听 storage 事件来处理消息，注意的是2个页面要同源
+   3. 可以通过 postMessage 方法实现多个标签页通信，注意如果是不同源的targetOrigin需要填写目标域名
 
 ## 统计当前页面出现次数最多的标签
 
@@ -199,6 +271,8 @@ getTopThreeTag()
 
 ## 跨域
 
+### 相关资料
+
 **协议**，**域名**，**端口**，三者有一不一样，就是跨域
 
 目前有两种最常见的解决方案：
@@ -263,12 +337,23 @@ getTopThreeTag()
    server.listen(10010, () => console.log('Done'))
    ```
 
+### 面试回答
+
+**协议**，**域名**，**端口**，三者有一个不一样，就会跨域
+
+解决方法
+
+1. 服务端响应头里设置 `Access-Control-Allow-Origin: *`
+2. 服务端代理，比如nginx代理，devServer
+3. 使用jsonp，原理是动态创建script标签，把参数放在URL里，服务端响应返回执行参数中的函数
+
 ## 图片懒加载
 
-### 在vant 中使用了2种实现方式的兼容处理
+### 相关资料
 
-1. [[Intersection_Observer_API](https://developer.mozilla.org/zh-CN/docs/Web/API/Intersection_Observer_API)](https://developer.mozilla.org/zh-CN/docs/Web/API/Intersection_Observer_API)
-2. 监听图片父元素滚动时图片是否在可视区，如果在可视区，则new image 去加载图片的URL,完成后替换src
+vant 图片懒加载原理
+
+[流程图](https://excalidraw.com/#json=39ahva7amaS1d2lqYMC0v,3QBiVpqeHBItdme6RD6zvA)
 
 ## cookie、sessionStorage与localStorage有何区别
 
@@ -606,13 +691,97 @@ export default newSetTimout
 
 
 
-## 二篇文章让你彻底搞懂浏览器的渲染机制
+## 从输入一个URL到渲染完成，浏览器做了什么？
+
+### 相关资料
 
 [[渲染页面：浏览器的工作原理](https://developer.mozilla.org/zh-CN/docs/Web/Performance/How_browsers_work)](https://developer.mozilla.org/zh-CN/docs/Web/Performance/How_browsers_work)
 
 [[浏览器的回流与重绘 (Reflow & Repaint)](https://juejin.cn/post/6844903569087266823)](https://juejin.cn/post/6844903569087266823)
 
+### 面试回答
 
+1. DNS 查询，解析成对应的IP
+
+2. 通过TCP3次握手与服务器建立连接
+
+3. 对于通过 HTTPS 建立的安全连接，还需要[TLS](https://developer.mozilla.org/zh-CN/docs/Glossary/TLS) 协商，决定使用哪种密码对通信进行加密，验证服务器，并在开始实际数据传输前建立安全连接
+
+4. 浏览器就会代表用户发送一个初始的 http请求，一旦服务器收到请求，就会返回一个HTML，第一个内容分块通常是 14KB 的数据。
+
+5. 一旦浏览器收到第一个数据分块，会产生一个渲染任务，并将其传递给渲染主线程的消息队列。
+
+   在事件循环机制的作用下，渲染主线程取出消息队列中的渲染任务，开启渲染流程。
+
+6. 解析HTML 并构造 DOM 树和CSSOM树(因为对象比字符串好操作)，同时为了提高解析效率，浏览器在开始解析前，会启动一个预解析的线程，率先下载 HTML 中的外部 CSS 文件和 外部的 JS 文件。
+
+   如果主线程解析到`link`位置，此时外部的 CSS 文件还没有下载解析好，主线程不会等待，继续解析后续的 HTML。这是因为下载和解析 CSS 的工作是在预解析线程中进行的。这就是 CSS 不会阻塞 HTML 解析的根本原因。
+
+   如果主线程解析到`script`位置，会停止解析 HTML，转而等待 JS 文件下载好，并且等待上面的css下载和解析完成后，才能开始执行js。这是因为 JS 代码的执行过程可能会修改当前的 DOM 树和CSSOM树，这就是 JS 会阻塞 HTML 解析和css会阻塞js执行的根本原因。
+
+7. 样式计算，主线程会遍历得到的 DOM 树，依次为树中的每个节点计算出它最终的样式，称之为 Computed Style。
+
+   在这一过程中，很多预设值会变成绝对值，比如`red`会变成`rgb(255,0,0)`；相对单位会变成绝对单位，比如`em`会变成`px`
+
+   像head、display:none、script都不会包含在渲染树中
+
+   可以通过getComputedStyle()获取
+
+8. 布局阶段会依次遍历 DOM 树的每一个节点，确定布局树中所有节点的尺寸和位置。例如可以通过document.body.clientWidth获取
+
+9. 分层，主线程会使用一套复杂的策略对整个布局树中进行分层。
+
+   分层的好处在于，将来某一个层改变后，仅会对该层进行后续处理，从而提升效率。
+
+   滚动条、堆叠上下文、transform、opacity 等样式都会或多或少的影响分层结果，也可以通过`will-change`属性更大程度的影响分层结果。分层确实可以提高性能，但在内存管理方面成本较高，因此不应作为 Web 性能优化策略的过度使用。
+
+10. 绘制，主线程会为每个层单独产生绘制指令集，用于描述这一层的内容该如何画出来。canvas 也是用的浏览器的绘制指令
+
+11. 分块，完成绘制后，主线程将每个图层的绘制信息提交给合成线程，剩余工作将由合成线程完成。
+
+    合成线程首先对每个图层进行分块，将其划分为更多的小区域。优先保证浏览器视口的分块先渲染
+
+    它会从线程池中拿取多个线程来完成分块工作。
+
+12. 光栅化，合成线程会将块信息交给 GPU 进程，以极高的速度完成光栅化。
+
+    GPU 进程会开启多个线程来完成光栅化，并且优先处理靠近视口区域的块。
+
+    光栅化的结果，就是一块一块的位图
+
+13. 画，合成线程拿到每个层、每个块的位图后，生成一个个「指引（quad）」信息。
+
+    指引会标识出每个位图应该画到屏幕的哪个位置，以及会考虑到旋转、缩放等变形。
+
+    变形发生在合成线程，与渲染主线程无关，这就是`transform`效率高的本质原因。
+
+    合成线程会把 quad 提交给 GPU 进程，由 GPU 进程产生系统调用，提交给 GPU 硬件，完成最终的屏幕成像。
+
+## 什么事reflow
+
+reflow 的本质就是重新计算 layout 树。
+
+当进行了会影响布局树的操作后，需要重新计算布局树，会引发 layout。
+
+为了避免连续的多次操作导致布局树反复计算，浏览器会合并这些操作，当 JS 代码全部完成后再进行统一计算。所以，改动属性造成的 reflow 是异步完成的。
+
+也同样因为如此，当 JS 获取布局属性时，就可能造成无法获取到最新的布局信息。
+
+浏览器在反复权衡下，最终决定获取属性立即 reflow。
+
+## 什么是 repaint？
+
+repaint 的本质就是重新根据分层信息计算了绘制指令。
+
+当改动了可见样式后，就需要重新计算，会引发 repaint。
+
+由于元素的布局信息也属于可见样式，所以 reflow 一定会引起 repaint。
+
+## 为什么 transform 的效率高？
+
+因为 transform 既不会影响布局也不会影响绘制指令，它影响的只是渲染流程的最后一个「draw」阶段
+
+由于 draw 阶段在合成线程中，所以 transform 的变化几乎不会影响渲染主线程。反之，渲染主线程无论如何忙碌，也不会影响 transform 的变化。
 
 ## 异步加载 JS 脚本时，async 与 defer 有何区别
 
