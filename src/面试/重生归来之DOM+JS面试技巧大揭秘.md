@@ -1,5 +1,4 @@
 ## 目录
-
 - [目录](#目录)
 - [link标签有什么作用](#link标签有什么作用)
   - [相关资料](#相关资料)
@@ -51,9 +50,10 @@
 - [异步加载 JS 脚本时，async 与 defer 有何区别](#异步加载-js-脚本时async-与-defer-有何区别)
   - [相关资料](#相关资料-11)
   - [面试回答](#面试回答-14)
-- [Vue 中的 router 实现原理如何](#vue-中的-router-实现原理如何)
+- [Vue 中的 router 实现原理](#vue-中的-router-实现原理)
+  - [相关资料](#相关资料-12)
+  - [面试回答](#面试回答-15)
 - [浏览器中如何读取二进制信息](#浏览器中如何读取二进制信息)
-
 
 
 ## link标签有什么作用
@@ -837,7 +837,29 @@ repaint 的本质就是重新根据分层信息计算了绘制指令。
   - async 加载(fetch)完成后立即执行 (execution)，因此可能会阻塞 DOM 解析；
   - defer 加载(fetch)完成后延迟到 DOM 解析完成后才会执行(execution)**，但会在事件 `DomContentLoaded` 之前
 
-## Vue 中的 router 实现原理如何
+## Vue 中的 router 实现原理
+
+### 相关资料
+
+[pushState](https://developer.mozilla.org/zh-CN/docs/Web/API/History/pushState)
+
+[replaceState](https://developer.mozilla.org/zh-CN/docs/Web/API/History/replaceState)
+
+[vue-router流程图](https://excalidraw.com/#json=TLs-RUI2SVP_54Rq5M4-X,iqNi3GugImSYzyoEcgF7WA)
+
+1. 新建路由模式
+
+   新建一个routerHistory对象，该对象有当前的base、当前path、初始化的historyState,并且监听popstate
+
+2. 新建路由实例
+
+3. 注册插件
+
+
+
+### 面试回答
+
+
 
 大概流程 拿history模式举例
 
