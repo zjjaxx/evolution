@@ -839,22 +839,34 @@ repaint 的本质就是重新根据分层信息计算了绘制指令。
 
 ## Vue 中的 router 实现原理
 
+
 ### 相关资料
 
 [pushState](https://developer.mozilla.org/zh-CN/docs/Web/API/History/pushState)
 
 [replaceState](https://developer.mozilla.org/zh-CN/docs/Web/API/History/replaceState)
 
+[popstate](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/popstate_event)
+
 [vue-router流程图](https://excalidraw.com/#json=TLs-RUI2SVP_54Rq5M4-X,iqNi3GugImSYzyoEcgF7WA)
+
+[vue-router源码分析](https://segmentfault.com/a/1190000043638262#item-2)
 
 1. 新建路由模式
 
-   新建一个routerHistory对象，该对象有当前的base、当前path、初始化的historyState,并且监听popstate
+   新建一个routerHistory对象，该对象封装了原生的history对象，有当前项目配置的base、当前路由*currentLocation*、当前堆栈信息*historyState*以及对应的`push`和`replace`操作,并且通过popstate事件来监听路由的前进后退,会根据回调参数state来维护当前路由currentLocation和当前堆栈信息historyState
 
 2. 新建路由实例
 
+   - 递归遍历传入的routes数组,解析path路径，先用有限状态机将path转为tokens数组，再将tokens解析拼接为正则表达式，最后生成matcher添加到matchers数组中和matcherMap中，matcherMap可以根据name查找matcher，其中matchers数组的排序是按权重大小来的，权重越大放越前面，而权重的比较也比较简单，不是按照总分计算权重，而是根据数组中的每一项从头到尾进行比较
+
+   - 初始化一个响应式路由对象表示当前路由信息，该对象就是useRoute hook返回的响应式对象，返回一个带install方法的router实例
+
 3. 注册插件
 
+   执行router实例的install方法，注册RouterLink、RouterView组件，调用push方法跳转到当前路由对应首页，对当前响应式路由信息初始化，用当前路由去遍历matchers，进行正则匹配，获取匹配到的matcher以及父级组成matched数组，并且同时解析出params、query、name等信息
+
+   
 
 
 ### 面试回答
