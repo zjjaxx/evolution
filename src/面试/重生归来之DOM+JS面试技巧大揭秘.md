@@ -53,7 +53,6 @@
 - [Vue 中的 router 实现原理](#vue-中的-router-实现原理)
   - [相关资料](#相关资料-12)
   - [面试回答](#面试回答-15)
-- [浏览器中如何读取二进制信息](#浏览器中如何读取二进制信息)
 
 
 ## link标签有什么作用
@@ -159,7 +158,7 @@
 1. 使用 WebSocket，通信的标签页连接同一个服务器，发送消息到服务器后，服务器推送消息给所有连接的客户端。
 
 2. 可以调用 localStorage本地存储方式，localStorge 另一个浏览上下文里被添加、修改或删除时，它都会触
-        发一个 storage 事件，我们通过监听 storage 事件，控制它的值来进行页面信息通信；
+       发一个 storage 事件，我们通过监听 storage 事件，控制它的值来进行页面信息通信；
 
    **标签页 A（发送数据）**
 
@@ -409,11 +408,11 @@ localStorage、sessionStorage：这两者都是使用`键与值(key-value)` 的�
    cookie 数据大小不能超过4 k 。
    sessionStorage 和 localStorage 虽然也有存储大小的限制，但比 cookie 大得多，可以达到 5M 或更大。
 
-4.  作用域
+4. 作用域
 
-     sessionStorage  只在同源的同窗口（或标签页）中共享数据，也就是只在当前会话中共享。这里需要注意的是，页面及标 签页仅指顶级窗口，如果一个标签页包含多个iframe标签且他们属于同源页面，那么他们之间是可以共享sessionStorage的
-     localStorage    在所有同源窗口中都是共享的。
-     cookie          在所有同源窗口中都是共享的。
+    sessionStorage  只在同源的同窗口（或标签页）中共享数据，也就是只在当前会话中共享。这里需要注意的是，页面及标 签页仅指顶级窗口，如果一个标签页包含多个iframe标签且他们属于同源页面，那么他们之间是可以共享sessionStorage的
+    localStorage    在所有同源窗口中都是共享的。
+    cookie          在所有同源窗口中都是共享的。
 
 5. Cookie安全
 
@@ -839,7 +838,6 @@ repaint 的本质就是重新根据分层信息计算了绘制指令。
 
 ## Vue 中的 router 实现原理
 
-
 ### 相关资料
 
 [pushState](https://developer.mozilla.org/zh-CN/docs/Web/API/History/pushState)
@@ -850,37 +848,27 @@ repaint 的本质就是重新根据分层信息计算了绘制指令。
 
 [vue-router流程图](https://excalidraw.com/#json=TLs-RUI2SVP_54Rq5M4-X,iqNi3GugImSYzyoEcgF7WA)
 
-[vue-router源码分析](https://segmentfault.com/a/1190000043638262#item-2)
+[vue-router源码分析](https://excalidraw.com/#json=4gOB5O5YCmtnyMJCY9nWP,Vrq39kdLQXFa6FBDVufqPA)
+
+### 面试回答
+
+大概流程 
 
 1. 新建路由模式
 
-   新建一个routerHistory对象，该对象封装了原生的history对象，有当前项目配置的base、当前路由*currentLocation*、当前堆栈信息*historyState*以及对应的`push`和`replace`操作,并且通过popstate事件来监听路由的前进后退,会根据回调参数state来维护当前路由currentLocation和当前堆栈信息historyState
+   现在不管是hash模式还是history模式，底层都是对原生的history API的封装，新建一个routerHistory对象，有当前项目配置的标准化的base、当前去除base的路径*currentLocation*、当前堆栈信息*historyState*,historyState包括当前路径current,下一级路径 forward，上一级路径back，是否replace，当前页面的滚动信息scroll,以及对应的`push`和`replace`操作,并且通过popstate事件来监听路由的前进后退,会根据回调参数state来维护当前路由currentLocation和当前堆栈信息historyState，并且通过listen注册事件来通知router更新当前路由信息
 
 2. 新建路由实例
 
    - 递归遍历传入的routes数组,解析path路径，先用有限状态机将path转为tokens数组，再将tokens解析拼接为正则表达式，最后生成matcher添加到matchers数组中和matcherMap中，matcherMap可以根据name查找matcher，其中matchers数组的排序是按权重大小来的，权重越大放越前面，而权重的比较也比较简单，不是按照总分计算权重，而是根据数组中的每一项从头到尾进行比较
 
-   - 初始化一个响应式路由对象表示当前路由信息，该对象就是useRoute hook返回的响应式对象，返回一个带install方法的router实例
+   - 初始化一个响应式路由route对象表示当前路由信息，该对象就是useRoute hook返回的响应式对象，返回一个带install方法的router实例
 
 3. 注册插件
 
-   执行router实例的install方法，注册RouterLink、RouterView组件，调用push方法跳转到当前路由对应首页，对当前响应式路由信息初始化，用当前路由去遍历matchers，进行正则匹配，获取匹配到的matcher以及父级组成matched数组，并且同时解析出params、query、name等信息
+   执行router实例的install方法，注册RouterLink、RouterView组件，调用push方法初始化当前路由信息，用当前路经去遍历matchers，进行正则匹配，获取匹配到的matcher以及父级组成matched数组，并且同时解析出params、query、name、path等信息组合成当前路由信息并更新，然后调用routerHistory的pushState或则replaceState方法更新当前路径和堆栈信息，通过provide把当前的路由信息全局注入
 
-   
+4. RouterView组件渲染原理
 
+   通过inject获取当前路由信息、然后递归注入深度depth，默认值为0，然后把当前路由信息中的matched组件数组根据深度depth依次渲染出来
 
-### 面试回答
-
-
-
-大概流程 拿history模式举例
-
-1. 新建history对象，通过base和URL解析出当前的跳转路径，同时监听[popstate](https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event)事件***注意popstate只能监听到go、back事件***[popstate](https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event)
-
-2. 新建router实例，通过传入的路由递归遍历生成matchers数组和相对应matcherMap,遍历过程中将path解析成tokens,然后动态拼接成正则，这样就可以通过URL和matchers数组精确匹配到父子组件，同时也可以根据name和matcherMap拿到父子组件。初始化一个响应式的当前路由对象注入到整个app
-3. 注册routerLink和routerView组件，routerView组件可以通过当前路由对象的matched获取匹配到的父子组件数组，同时通过注入deep深度默认0,渲染加一依次渲染每一个routerView组件
-4. 路由跳转通过负值当前的响应式路由对象，可以做到routerView组件响应式渲染，然后通过history.pushState/replaceState保存路由堆栈记录
-
-## 浏览器中如何读取二进制信息
-
-![](https://shanyue.tech/assets/img/transform.77175c26.jpg)
