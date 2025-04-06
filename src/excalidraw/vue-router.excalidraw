@@ -9972,8 +9972,8 @@
         "type": 3
       },
       "seed": 694173401,
-      "version": 60,
-      "versionNonce": 363818015,
+      "version": 61,
+      "versionNonce": 1190256065,
       "isDeleted": false,
       "boundElements": [
         {
@@ -9981,7 +9981,7 @@
           "id": "pjjEjq4qwXqwX6eLRtIUK"
         }
       ],
-      "updated": 1743853365581,
+      "updated": 1743856046926,
       "link": null,
       "locked": false
     },
@@ -10005,11 +10005,11 @@
       "index": "b8T",
       "roundness": null,
       "seed": 297823479,
-      "version": 38,
-      "versionNonce": 1885612369,
+      "version": 39,
+      "versionNonce": 1072995023,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1743853365581,
+      "updated": 1743856046926,
       "link": null,
       "locked": false,
       "text": "省略*****",

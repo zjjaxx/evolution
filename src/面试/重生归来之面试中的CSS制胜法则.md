@@ -1,27 +1,26 @@
 ## 目录
 - [目录](#目录)
-- [css 中的@import作用](#css-中的import作用)
 - [z-index 与层叠上下文](#z-index-与层叠上下文)
-  - [首先要理解2个概念](#首先要理解2个概念)
-  - [层叠上下文的创建](#层叠上下文的创建)
+  - [相关资料](#相关资料)
+  - [相关回答](#相关回答)
 - [\[\[CSS-水平居中、垂直居中、水平垂直居中\](https://segmentfault.com/a/1190000014116655)\](https://segmentfault.com/a/1190000014116655)](#css-水平居中垂直居中水平垂直居中httpssegmentfaultcoma1190000014116655httpssegmentfaultcoma1190000014116655)
 - [面试官：请说说什么是BFC？大白话讲清楚](#面试官请说说什么是bfc大白话讲清楚)
+  - [相关资料](#相关资料-1)
+  - [面试回答](#面试回答)
 - [如何画一个正方形/长宽固定的长方形](#如何画一个正方形长宽固定的长方形)
 - [有没有使用过 css variable，它解决了哪些问题](#有没有使用过-css-variable它解决了哪些问题)
 - [在日常开发中如何让图片保持缩放比例正常显示](#在日常开发中如何让图片保持缩放比例正常显示)
 - [\[搞懂＞＞＞、/deep/、::v-deep、::v-deep()和:deep()的区别与用法\](](#搞懂deepv-deepv-deep和deep的区别与用法)
 
-## css 中的@import作用
-
-@import 是一种用于导入外部样式表的规则。它可以将一个 CSS 文件中的样式引入到另一个 CSS 文件中，使得样式可以在多个文件中共享和重用。
-
-另外，从性能优化的角度来讲，尽量要避免使用@import。
-
 ## z-index 与层叠上下文
+
+### 相关资料
+
+[当元素祖先的 `transform`、`perspective`、`filter` 或 `backdrop-filter` 属性非 `none` 时，容器由视口改为该祖先](https://developer.mozilla.org/zh-CN/docs/Web/CSS/position)
 
 推荐看[[[张鑫旭-《深入理解CSS中的层叠上下文和层叠顺序》](https://link.juejin.cn/?target=https%3A%2F%2Fwww.zhangxinxu.com%2Fwordpress%2F2016%2F01%2Funderstand-css-stacking-context-order-z-index%2F)](https://link.juejin.cn/?target=https%3A%2F%2Fwww.zhangxinxu.com%2Fwordpress%2F2016%2F01%2Funderstand-css-stacking-context-order-z-index%2F)](https://link.juejin.cn/?target=https%3A%2F%2Fwww.zhangxinxu.com%2Fwordpress%2F2016%2F01%2Funderstand-css-stacking-context-order-z-index%2F)
 
-### 首先要理解2个概念
+**首先要理解2个概念**
 
 1. 层叠上下文，英文称作”stacking context”. 是HTML中的一个三维的概念,在三维空间中指代Z轴的概念
 
@@ -36,7 +35,7 @@
 1. **谁大谁上**
 2. **后来居上**
 
-### 层叠上下文的创建
+**层叠上下文的创建**
 
 有3种类型：拿科举举例
 
@@ -60,8 +59,37 @@
 5. 元素的`filter`值不是`none`.
 6. 元素的`isolation`值是`isolate`.
 7. `will-change`指定的属性值为上面任意一个。
-8. 元素的`-webkit-overflow-scrolling`
-9. 设为`touch`.
+8. 元素的`-webkit-overflow-scrolling`设为`touch`.
+
+### 相关回答
+
+**层叠上下文**就是对HTML 元素的一个三维构想，元素在Z轴上按优先级排列
+
+在同一个层叠上下文中的显示顺序如下图所示
+
+![排序](https://image.zhangxinxu.com/image/blog/201601/2016-01-09_211116.png)
+
+另外加上2个准则就能判断同一层叠上下文中显示的先后顺序
+
+1. **谁大谁上**
+2. **后来居上**
+
+**层叠上下文的创建**
+
+**根层叠上下文**
+指的是页面根元素，也就是滚动条的默认的始作俑者`<html>`元素。这就是为什么，绝对定位元素在`left`/`top`等值定位的时候，如果没有其他定位元素限制，会相对浏览器窗口定位的原因。
+
+**定位元素与传统层叠上下文**
+
+普通元素设置`position`属性为**非**`static`值并设置`z-index`属性为具体数值，产生层叠上下文。
+
+**CSS3与新时代的层叠上下文** 常见的有
+
+1. `z-index`值不为`auto`的`flex`项(父元素`display:flex|inline-flex`).
+2. 元素的`opacity`值不是`1`.
+3. 元素的`transform`值不是`none`.
+4. 元素的`filter`值不是`none`.
+5. `will-change`指定的属性值为上面任意一个。
 
 ## [[[CSS-水平居中、垂直居中、水平垂直居中](https://segmentfault.com/a/1190000014116655)](https://segmentfault.com/a/1190000014116655)](https://segmentfault.com/a/1190000014116655)
 
@@ -72,7 +100,57 @@
 
 ## 面试官：请说说什么是BFC？大白话讲清楚
 
+### 相关资料
+
+常规流 块盒
+
+1. 水平方向，撑满整个包含块宽度，垂直方向上，依次摆放
+2. 垂直方向上相邻的元素，margin会合并
+3. 父子关系的情况下，可能会产生margin塌陷
+4. 父子关系的情况下，父元素无视浮动元素会产生高度塌陷
+5. 兄弟关系的情况下，正常元素可能会被浮动元素覆盖
+
+区块格式化上下文
+
+1. 开启BFC的区域，是一块独立的渲染区域
+2. 隔绝了内部和外部的联系，内部渲染不会影响到外部
+3. 当然，不同的BFC区域，渲染时也是互不干扰
+
+开启BFC能解决什么问题
+
+1.  开启BFC，其子元素不会再产生margin塌陷问题
+2. 开启BFC，就算子元素浮动，自身高度也不会坍塌
+3. 开启BFC，自己不会被其他浮动元素所覆盖
+
+开启BFC常用方法
+
+1. 浮动元素，float值不为none
+2. 绝对定位 元素 ，position的值为absolute或者fixed
+3. 行内块元素 display的值为inline-block
+4. display 为table-cell、table-caption、table等等
+5. overflow值不为visible或则clip的块级元素
+6. display值为flow-root
+7. 弹性元素display的值为flex或则inline-flex元素的直接子元素
+
 [[[BFC详解](https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_display/Block_formatting_context)](https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_display/Block_formatting_context)](https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_display/Block_formatting_context)
+
+### 面试回答
+
+通常，我们会为定位和清除浮动创建新的 BFC，而不是更改布局，因为它将
+
+- 包含内部浮动。
+- 排除外部浮动。
+- 阻止[外边距重叠](https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_box_model/Mastering_margin_collapsing)。
+
+开启BFC常用方法
+
+1. 浮动元素，float值不为none
+2. 绝对定位 元素 ，position的值为absolute或者fixed
+3. 行内块元素 display的值为inline-block
+4. display 为table-cell、table-caption、table等等
+5. overflow值不为visible或则clip的块级元素
+6. display值为flow-root
+7. 弹性元素display的值为flex或则inline-flex元素的直接子元素
 
 ## 如何画一个正方形/长宽固定的长方形
 
