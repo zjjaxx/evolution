@@ -23,6 +23,8 @@
 
 ## 什么是JSON schema
 
+[官网]()
+
 JSON模式是一种声明性语言，用于注释和验证JSON文档的结构、约束和数据类型。它可以帮助您规范和定义对JSON数据的期望。
 
 ![](https://json-schema.org/img/json_schema.svg)
@@ -383,3 +385,121 @@ $id属性作为每个JSON schema唯一标识符，比如作为版本的概念
 • 则应用then块，该块指定membershipNumber属性应该是一个长度最短为10且最长为10的字符串。
 如果isMember的值不是真：
 • 则应用else块，该块指定membershipNumber属性可以是任何字符串。
+
+### multipleOf
+
+使用multipleOf关键字可以将数字限制为给定数字的倍数。它可以设置为任何正数。
+
+```json
+{
+  "type": "number",
+  "multipleOf" : 10
+}
+
+
+```
+
+
+
+### allOf
+
+给定的数据必须符合所有给定的子模式。
+
+```json
+{
+  "allOf": [
+    { "type": "string" },
+    { "maxLength": 5 }
+  ]
+}
+
+
+```
+
+### anyOf
+
+给定的数据必须针对给定的子模式中的任何一个（一个或多个）有效。
+
+```json
+{
+  "anyOf": [
+    { "type": "string", "maxLength": 5 },
+    { "type": "number", "minimum": 0 }
+  ]
+}
+
+
+```
+
+### oneOf
+
+给定的数据必须恰好针对给定的子模式中的一个有效。
+
+```josn
+{
+  "oneOf": [
+    { "type": "number", "multipleOf": 5 },
+    { "type": "number", "multipleOf": 3 }
+  ]
+}
+
+
+```
+
+5和3的公倍数将被拒绝。
+
+### not
+
+“not”关键字声明一个实例如果不符合给定的子模式，则进行验证
+
+```json
+{ "not": { "type": "string" } }
+
+```
+
+### Factoring Schemas
+
+可以“提取”出子模式中的公共部分。以下两个模式是等效的
+
+```json
+{
+  "oneOf": [
+    { "type": "number", "multipleOf": 5 },
+    { "type": "number", "multipleOf": 3 }
+  ]
+}
+
+
+```
+
+```json
+{
+  "type": "number",
+  "oneOf": [
+    { "multipleOf": 5 },
+    { "multipleOf": 3 }
+  ]
+}
+
+
+```
+
+### additionalProperties
+
+“additionalProperties”关键字用于控制额外内容的处理，即属性名称未列在“properties”关键字中或与“patternProperties”关键字中的任何正则表达式不匹配的属性。默认情况下，允许任何额外属性。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "number": { "type": "number" },
+    "street_name": { "type": "string" },
+    "street_type": { "enum": ["Street", "Avenue", "Boulevard"] }
+  },
+  "additionalProperties": { "type": "string" }
+}
+
+
+```
+
+你可以使用非布尔模式对实例的附加属性设置更复杂的约束条件。例如，可以允许存在附加属性，但前提是它们的值必须均为字符串
