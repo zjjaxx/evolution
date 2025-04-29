@@ -1,4 +1,5 @@
-const { effect, ref } = Vue;
+const { effect, ref, reactive, shallowReactive, shallowReadonly, watchEffect } =
+  Vue;
 const bol = ref(false);
 const Text = Symbol();
 const Comment = Symbol();
@@ -55,6 +56,13 @@ const options = {
     if (vnode.type === Fragment) {
       vnode.children.forEach((node) => this.unmount(node));
       return;
+    } else if (typeof vnode.type === "object") {
+      if (vnode.shouldKeepAlive) {
+        vnode.keepAliveInstance._deActivate(vnode);
+      } else {
+        this.unmount(vnode.component.subTree);
+      }
+      return;
     }
     if (vnode.el.parentNode) {
       vnode.el.parentNode.removeChild(vnode.el);
@@ -104,47 +112,47 @@ const options = {
     }
   },
 };
-function getSequence(arr){
-    const p = arr.slice()
-    const result = [0]
-    let i, j, u, v, c
-    const len = arr.length
-    for (i = 0; i < len; i++) {
-      const arrI = arr[i]
-      if (arrI !== 0) {
-        j = result[result.length - 1]
-        if (arr[j] < arrI) {
-          p[i] = j
-          result.push(i)
-          continue
-        }
-        u = 0
-        v = result.length - 1
-        while (u < v) {
-          c = (u + v) >> 1
-          if (arr[result[c]] < arrI) {
-            u = c + 1
-          } else {
-            v = c
-          }
-        }
-        if (arrI < arr[result[u]]) {
-          if (u > 0) {
-            p[i] = result[u - 1]
-          }
-          result[u] = i
+function getSequence(arr) {
+  const p = arr.slice();
+  const result = [0];
+  let i, j, u, v, c;
+  const len = arr.length;
+  for (i = 0; i < len; i++) {
+    const arrI = arr[i];
+    if (arrI !== 0) {
+      j = result[result.length - 1];
+      if (arr[j] < arrI) {
+        p[i] = j;
+        result.push(i);
+        continue;
+      }
+      u = 0;
+      v = result.length - 1;
+      while (u < v) {
+        c = (u + v) >> 1;
+        if (arr[result[c]] < arrI) {
+          u = c + 1;
+        } else {
+          v = c;
         }
       }
+      if (arrI < arr[result[u]]) {
+        if (u > 0) {
+          p[i] = result[u - 1];
+        }
+        result[u] = i;
+      }
     }
-    u = result.length
-    v = result[u - 1]
-    while (u-- > 0) {
-      result[u] = v
-      v = p[v]
-    }
-    return result
   }
-  
+  u = result.length;
+  v = result[u - 1];
+  while (u-- > 0) {
+    result[u] = v;
+    v = p[v];
+  }
+  return result;
+}
+
 function lis(nums) {
   if (nums.length === 0) return [];
 
@@ -184,6 +192,89 @@ function lis(nums) {
   // 返回最长的索引序列
   return result[result.length - 1];
 }
+let currentInstance = null;
+let setCurrentInstance = (instance) => {
+  currentInstance = instance;
+};
+function onMounted(fn) {
+  if (currentInstance) {
+    currentInstance.mounted.push(fn);
+  }
+}
+const queue = new Set();
+let isFlushing = false;
+function queueJob(job) {
+  queue.add(job);
+  if (!isFlushing) {
+    isFlushing = true;
+    Promise.resolve().then(() => {
+      try {
+        queue.forEach((job) => job());
+      } finally {
+        isFlushing = false;
+        queue.length = 0;
+      }
+    });
+  }
+}
+const resolveProps = (options, propsData) => {
+  const props = {};
+  const attrs = {};
+  for (const key in propsData) {
+    if (key in options || key.startsWith("on")) {
+      props[key] = propsData[key];
+    } else {
+      attrs[key] = propsData[key];
+    }
+  }
+  return [props, attrs];
+};
+function hasPropsChanged(prevProps, nextProps) {
+  const nextKeys = Object.keys(nextProps);
+  if (nextKeys.length != Object.keys(prevProps).length) {
+    return true;
+  }
+  for (let i = 0; i < nextKeys.length; i++) {
+    const key = nextKeys[i];
+    if (nextProps[key] !== prevProps[key]) {
+      return true;
+    }
+  }
+  return false;
+}
+const KeepAlive = {
+  __isKeepAlive: true,
+  setup(props, { slots }) {
+    const cache = new Map();
+    const instance = currentInstance;
+    const { move, createElement } = instance.keepAliveCtx;
+
+    const storageContainer = createElement("div");
+
+    instance._deActivate = (vnode) => {
+      move(vnode, storageContainer);
+    };
+    instance._activate = (vnode, container, anchor) => {
+      move(vnode, container, anchor);
+    };
+    return () => {
+      let rawVNode = slots.default();
+      if (typeof rawVNode.type !== "object") {
+        return rawVNode;
+      }
+      const cachedVNode = cache.get(rawVNode.type);
+      if (cachedVNode) {
+        rawVNode.component = cachedVNode.component;
+        rawVNode.keptAlive = true;
+      } else {
+        cache.set(rawVNode.type, rawVNode);
+      }
+      rawVNode.shouldKeepAlive = true;
+      rawVNode.keepAliveInstance = instance;
+      return rawVNode;
+    };
+  },
+};
 function createRenderer(options) {
   const {
     createElement,
@@ -306,24 +397,22 @@ function createRenderer(options) {
       let oldEnd = oldChildren.length - 1;
       let newEnd = newChildren.length - 1;
 
-      while(j<=oldEnd && j<=newEnd){
-        if(newChildren[j].key===oldChildren[j].key){
-            patch(oldChildren[j], newChildren[j], el);
+      while (j <= oldEnd && j <= newEnd) {
+        if (newChildren[j].key === oldChildren[j].key) {
+          patch(oldChildren[j], newChildren[j], el);
+        } else {
+          break;
         }
-        else {
-            break
-        }
-        j++
+        j++;
       }
-      while(j<=oldEnd && j<=newEnd){
-        if(newChildren[j].key===oldChildren[j].key){
-            patch(oldChildren[j], newChildren[j], el);
+      while (j <= oldEnd && j <= newEnd) {
+        if (newChildren[j].key === oldChildren[j].key) {
+          patch(oldChildren[j], newChildren[j], el);
+        } else {
+          break;
         }
-        else {
-            break
-        }
-        oldEnd--
-        newEnd--
+        oldEnd--;
+        newEnd--;
       }
 
       if (j > oldEnd && j <= newEnd) {
@@ -377,25 +466,25 @@ function createRenderer(options) {
 
         if (moved) {
           const seq = getSequence(source);
-          let s=seq.length-1
-          let i=count-1
-          for(i;i>=0;i--){
-            if(source[i]===-1){
-                const pos=i+newStart
-                const newVnode=newChildren[pos]
-                const nextPos=pos+1
-                const anchor=nextPos<newChildren.length?newChildren[nextPos].el:null
-                patch(null,newVnode,el,anchor)
-            }
-            else if(i!==seq[s]){
-                const pos=i+newStart
-                const newVnode=newChildren[pos]
-                const nextPos=pos+1
-                const anchor=nextPos<newChildren.length?newChildren[nextPos].el:null
-                insert(newVnode.el,el,anchor)
-            }
-            else {
-                s--
+          let s = seq.length - 1;
+          let i = count - 1;
+          for (i; i >= 0; i--) {
+            if (source[i] === -1) {
+              const pos = i + newStart;
+              const newVnode = newChildren[pos];
+              const nextPos = pos + 1;
+              const anchor =
+                nextPos < newChildren.length ? newChildren[nextPos].el : null;
+              patch(null, newVnode, el, anchor);
+            } else if (i !== seq[s]) {
+              const pos = i + newStart;
+              const newVnode = newChildren[pos];
+              const nextPos = pos + 1;
+              const anchor =
+                nextPos < newChildren.length ? newChildren[nextPos].el : null;
+              insert(newVnode.el, el, anchor);
+            } else {
+              s--;
             }
           }
         }
@@ -419,7 +508,138 @@ function createRenderer(options) {
       }
       insert(el, container, anchor);
     }
-    if (oldVnode && oldVnode.type !== newVnode.type) {
+    function mountComponent(newVnode, container, anchor) {
+      const slots=newVnode.children
+      const isFunctional = typeof vnode.type === "function";
+      let componentOption = newVnode.type;
+      if (isFunctional) {
+        componentOption = {
+          render: newVnode.type,
+          props: newVnode.type.props,
+        };
+      }
+      const {
+        render,
+        data,
+        props: propsOption,
+        setup,
+        beforeCreate,
+        created,
+        beforeMount,
+        mounted,
+        beforeUpdate,
+        updated,
+      } = componentOption;
+      beforeCreate && beforeCreate();
+      const state = data ? reactive(data()) : null;
+      const [props, attrs] = resolveProps(propsOption, newVnode.props);
+      const instance = {
+        state,
+        props: shallowReactive(props),
+        isMounted: false,
+        subTree: null,
+        slots,
+        mounted: [],
+        keepAliveCtx:null
+      };
+      const isKeepAlive=newVnode.type.__isKeepAlive
+      if(isKeepAlive){
+        instance.keepAliveCtx={
+          move(vnode,container,anchor){
+            insert(vnode.component.subTree.el,container,anchor)
+          },
+          createElement
+        }
+      }
+      function emit(event, ...payload) {
+        const eventName = `on${event[0].toUpperCase() + event.slice(1)}`;
+        const handler = instance.props[eventName];
+        if (handler) {
+          handler(...payload);
+        } else {
+          console.error("事件不存在");
+        }
+      }
+
+      const setupContext = { attrs, emit, slots };
+      setCurrentInstance(instance);
+      const setupResult = setup(shallowReadonly(instance.props), setupContext);
+      setCurrentInstance(null);
+      let setupState = null;
+      if (typeof setupResult === "function") {
+        if (render) {
+          console.error("setup函数返回渲染函数，render选项被忽略");
+        }
+        render = setupResult;
+      } else {
+        setupState = setupResult;
+      }
+      newVnode.component = instance;
+      const renderContext = new Proxy(instance, {
+        get(target, key, reactive) {
+          const { state, props } = target;
+          if (key === "$slots") {
+            return setupContext.slots;
+          }
+          if (state && key in state) {
+            return state[key];
+          } else if (key in props) {
+            return props[key];
+          } else if (setupState && key in setupState) {
+            return setupState[key];
+          } else {
+            console.error("不存在");
+          }
+        },
+        set(target, key, value, reactive) {
+          const { state, props } = target;
+          if (state && key in state) {
+            state[key] = value;
+          } else if (key in props) {
+            props[key] = value;
+          } else if (setupState && key in setupState) {
+            setupState[key] = value;
+          } else {
+            console.error("不存在");
+          }
+        },
+      });
+      created && created.call(renderContext);
+      effect(() => {
+        const subTree = render.call(renderContext, renderContext);
+        if (!instance.isMounted) {
+          beforeMount && beforeMount.call(renderContext);
+          patch(null, subTree, container, anchor);
+          instance.isMounted = true;
+          mounted && mounted.call(renderContext);
+          instance.mounted && instance.mounted.forEach((hook) => hook());
+        } else {
+          beforeUpdate && beforeUpdate.call(renderContext);
+          patch(instance.subTree, subTree, container, anchor);
+          updated && updated.call(renderContext);
+        }
+        instance.subTree = subTree;
+      });
+    }
+    function patchComponent(oldVnode, newVnode, anchor) {
+      const instance = (newVnode.component = oldVnode.component);
+      const { props } = instance;
+      if (hasPropsChanged(oldVnode.props, newVnode.props)) {
+        const [nextProps] = resolveProps(newVnode.type.props, newVnode.props);
+        for (const k in nextProps) {
+          props[k] = nextProps[k];
+        }
+        for (const k in props) {
+          if (!(k in nextProps)) {
+            delete props[k];
+          }
+        }
+      }
+    }
+    if (
+      oldVnode &&
+      !(oldVnode.type == newVnode.type && oldVnode.key == newVnode.key)
+    ) {
       unmount(oldVnode);
       oldVnode = null;
     }
@@ -446,7 +666,16 @@ function createRenderer(options) {
       } else {
         patchChildren(oldVnode, newVnode, container);
       }
-    } else if (typeof type === "object") {
+    } else if (typeof type === "object" || typeof type === "function") {
+      if (!oldVnode) {
+        if (newVnode.keptAlive) {
+          newVnode.keepAliveInstance._activate(newVnode, container, anchor);
+        } else {
+          mountComponent(newVnode, container.anchor);
+        }
+      } else {
+        patchComponent(oldVnode, newVnode, anchor);
+      }
     }
   }
 
@@ -498,7 +727,65 @@ let pList = [
     key: 6,
   },
 ];
+const component = {
+  name: "MyComponent",
+  props: {
+    title: String,
+  },
+  setup(props, setupContext) {
+    const { emit } = setupContext;
+    emit("change", 1, 2);
+    const count = ref(0);
+    onMounted(() => {
+      console.log("mounted");
+    });
+    return {
+      count,
+    };
+  },
+  data() {
+    return {
+      name: "zjj",
+    };
+  },
+  render() {
+    return {
+      type: "div",
+      children: [
+        {
+          type: "p",
+          children: `name is ${this.name}`,
+        },
+        this.$slots.header(),
+        this.$slots.body(),
+        this.$slots.footer(),
+        {
+          type: "p",
+          children: `count is ${this.count.value}`,
+        },
+        {
+          type: "button",
+          children: "button",
+          props: {
+            onClick: () => {
+              this.count.value = +1;
+            },
+          },
+        },
+      ],
+    };
+  },
+};
 effect(() => {
+  let functionComponent = (props) => {
+    return {
+      type: "h1",
+      children: props.title,
+    };
+  };
+  functionComponent.props = {
+    title: String,
+  };
   const eventVNode = {
     type: "div",
     props: bol.value
@@ -589,6 +876,39 @@ effect(() => {
         type: Comment,
         children: "我是注释节点",
       },
+      {
+        type: component,
+        children: {
+          header() {
+            return {
+              type: "h1",
+              children: "我是标题",
+            };
+          },
+          body() {
+            return {
+              type: "section",
+              children: "我是内容",
+            };
+          },
+          footer() {
+            return {
+              type: "p",
+              children: "我是猪脚",
+            };
+          },
+        },
+        props: {
+          title: "a big title",
+          other: "other",
+          onChange: (value1, value2) => {
+            console.log("value1 is", value1, "value2 is ", value2);
+          },
+        },
+      },
+      // {
+      //   type:functionComponent
+      // },
     ],
   };
   renderer.render(eventVNode, document.querySelector("#app"));
