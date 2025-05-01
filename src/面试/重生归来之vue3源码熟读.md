@@ -76,7 +76,7 @@ export default {
 }
 ```
 
-都是作为组件vnode的type值传入的，同时编译器会在打包的时候把tamplate模版元素编译成render函数生成到options中,而组件元素上传入的属性作为vnode的props传入
+都是作为组件vnode的type值传入的，同时编译器会在打包的时候把template模版元素编译成render函数生成到options中,而组件元素上传入的属性作为vnode的props传入
 
 ```html
 <MyComponent title='title'></MyComponent>
@@ -139,7 +139,17 @@ setup函数返回值有2种情况：1返回一个渲染函数替代render函数�
 函数式组件本质上就是一个普通函数，该函数返回值是虚拟DOM，该函数就代表着render函数，函数上的属性就表示options的props
 
 ## keepAlive组件的实现原理
-原理是从原容器搬运到另外一个隐藏的容器中，实现假卸载
+作用:
+keepalive组件可以避免一个组件被频繁的销毁和重建
+原理：
+是从原容器搬运到另外一个隐藏的容器中，实现假卸载
+
+
+
+1. 在setup函数中构建一个map对象来缓存要被keeplive的组件vnode,vnode中有要被组件的实例、真实的DOM元素
+2. 创建一个不挂载的元素来接收要被缓存的真实DOM，在keepalive组件实例上注入2个生命周期的回调，deActivate和activate用来隐藏和显示真实DOM元素
+3. 当keepalive组件是动态插槽时，有响应式数据更新，keepalive的render函数会重新渲染，从缓存map中获取vnode,如果存在，则把组件实例放到插槽中的vnode中，并标记改vnode为keptAlive，避免渲染器重新挂载它，不存在就缓存它
+4. 当卸载时调用调用父组件keepAlive实例上的deActivate回调钩子把节点移动到隐藏容器中，当重新挂载是父组件keepAlive实例上的activate回调把节点移回原来的容器
 
 
    

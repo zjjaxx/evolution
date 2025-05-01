@@ -1,6 +1,7 @@
 const { effect, ref, reactive, shallowReactive, shallowReadonly, watchEffect } =
   Vue;
 const bol = ref(false);
+const flag = ref(0);
 const Text = Symbol();
 const Comment = Symbol();
 const Fragment = Symbol();
@@ -60,7 +61,9 @@ const options = {
       if (vnode.shouldKeepAlive) {
         vnode.keepAliveInstance._deActivate(vnode);
       } else {
+        vnode.component.beforeMount && vnode.component.beforeMount();
         this.unmount(vnode.component.subTree);
+        vnode.component.unMounted && vnode.component.unMounted();
       }
       return;
     }
@@ -230,6 +233,9 @@ const resolveProps = (options, propsData) => {
   return [props, attrs];
 };
 function hasPropsChanged(prevProps, nextProps) {
+  if(!nextProps && !prevProps){
+    return false
+  }
   const nextKeys = Object.keys(nextProps);
   if (nextKeys.length != Object.keys(prevProps).length) {
     return true;
@@ -509,7 +515,7 @@ function createRenderer(options) {
       insert(el, container, anchor);
     }
     function mountComponent(newVnode, container, anchor) {
-      const slots=newVnode.children
+      const slots = newVnode.children;
       const isFunctional = typeof vnode.type === "function";
       let componentOption = newVnode.type;
       if (isFunctional) {
@@ -518,7 +524,7 @@ function createRenderer(options) {
           props: newVnode.type.props,
         };
       }
-      const {
+      let {
         render,
         data,
         props: propsOption,
@@ -540,16 +546,16 @@ function createRenderer(options) {
         subTree: null,
         slots,
         mounted: [],
-        keepAliveCtx:null
+        keepAliveCtx: null,
       };
-      const isKeepAlive=newVnode.type.__isKeepAlive
-      if(isKeepAlive){
-        instance.keepAliveCtx={
-          move(vnode,container,anchor){
-            insert(vnode.component.subTree.el,container,anchor)
+      const isKeepAlive = newVnode.type.__isKeepAlive;
+      if (isKeepAlive) {
+        instance.keepAliveCtx = {
+          move(vnode, container, anchor) {
+            insert(vnode.component.subTree.el, container, anchor);
           },
-          createElement
-        }
+          createElement,
+        };
       }
       function emit(event, ...payload) {
         const eventName = `on${event[0].toUpperCase() + event.slice(1)}`;
@@ -671,7 +677,7 @@ function createRenderer(options) {
         if (newVnode.keptAlive) {
           newVnode.keepAliveInstance._activate(newVnode, container, anchor);
         } else {
-          mountComponent(newVnode, container.anchor);
+          mountComponent(newVnode, container, anchor);
         }
       } else {
         patchComponent(oldVnode, newVnode, anchor);
@@ -727,6 +733,22 @@ let pList = [
     key: 6,
   },
 ];
+const input = {
+  props: {
+    value: String,
+  },
+  setup() {
+    return {};
+  },
+  render() {
+    return {
+      type: "input",
+      props: {
+        value: this.value,
+      },
+    };
+  },
+};
 const component = {
   name: "MyComponent",
   props: {
@@ -756,9 +778,10 @@ const component = {
           type: "p",
           children: `name is ${this.name}`,
         },
-        this.$slots.header(),
-        this.$slots.body(),
-        this.$slots.footer(),
+        // this.$slots.header(),
+        // this.$slots.body(),
+        // this.$slots.footer(),
+        this.$slots.default(),
         {
           type: "p",
           children: `count is ${this.count.value}`,
@@ -885,6 +908,12 @@ effect(() => {
               children: "我是标题",
             };
           },
+          default: () => {
+            return {
+              type: "p",
+              children: "default",
+            };
+          },
           body() {
             return {
               type: "section",
@@ -903,6 +932,38 @@ effect(() => {
           other: "other",
           onChange: (value1, value2) => {
             console.log("value1 is", value1, "value2 is ", value2);
+          },
+        },
+      },
+      {
+        type: KeepAlive,
+        children: {
+          default:
+            flag.value % 2 === 0
+              ? () => {
+                  return {
+                    type: input,
+                    props: {
+                      value: "2",
+                    },
+                  };
+                }
+              : () => {
+                  return {
+                    type: input,
+                    props: {
+                      value: "1",
+                    },
+                  };
+                },
+        },
+      },
+      {
+        type: "button",
+        children: "flag",
+        props: {
+          onClick: () => {
+            flag.value++;
           },
         },
       },
