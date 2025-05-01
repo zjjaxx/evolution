@@ -149,7 +149,7 @@ IOC是一种设计模式，DI是IOC的具体实现
 
 依赖注入它允许再类外创建依赖对象，并通过不同的形式将这些对象提供给类，通过通用接口的形式，实现了类和依赖之间的解耦
 
-![DI](/Users/zhengjiajun/zjj/learn/evolution/src/面试/assets/imgs/DI.png)
+![DI](./assets/imgs/DI.png)
 
 ### 生命周期
 
@@ -157,11 +157,11 @@ IOC是一种设计模式，DI是IOC的具体实现
 
 ### nest用模块来组织代码
 
- ![module](/Users/zhengjiajun/zjj/learn/evolution/src/面试/assets/imgs/module.png)
+ ![module](./assets/imgs/module.png)
 
 ### DTO和DAO
 
-![DTO_DAO](/Users/zhengjiajun/zjj/learn/evolution/src/面试/assets/imgs/DTO_DAO.png)
+![DTO_DAO](./assets/imgs/DTO_DAO.png)
 
 dto 是的请求参数校验的TS类型层，DAO的数据库的TS实体类型层
 
