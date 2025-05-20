@@ -7,6 +7,8 @@
   - [过滤](#过滤)
   - [pnpm link](#pnpm-link)
   - [pnpm unlink](#pnpm-unlink)
+- [monorepo管理](#monorepo管理)
+  - [pnpm-workspace.yaml](#pnpm-workspaceyaml)
 - [工作空间协议](#工作空间协议)
 - [发布流程](#发布流程)
 
@@ -53,7 +55,15 @@ pnpm link foo # 链接 foo 到 my-project
 pnpm unlink 
 pnpm unlink <pkg name> 
 ```
-
+## monorepo管理
+### pnpm-workspace.yaml
+```yaml
+packages:
+  # 匹配所有的packages
+  - 'packages/*'
+  # 匹配packages目录下的所有packages
+  - 'packages/**'
+```
 ##  工作空间协议 
 
  pnpm 支持 `workspace:` 协议。 当使用此协议时，pnpm 将拒绝解析除本地工作空间所包含包之外的任何内容。 因此，如果设置 `"foo": "workspace:2.0.0|*"`，那么此时 安装将失败，因为工作空间中不存在 `"foo@2.0.0"`。

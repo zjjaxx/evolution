@@ -107,6 +107,59 @@ CMD [ "pnpm","start:prod" ]
 EXPOSE 3000
 ```
 
+- `RUN 命令是构建镜像的命令`
+- `CMD 是启动容器的命令`
+
+### docker-compose容器通信
+
+```yaml
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    # networks:
+    #   - sharefly
+    volumes:
+      - redis_volume_data:/data
+    ports:
+      - 6379:6379
+    
+  db:
+    image: mysql:9.3.0
+    restart: always
+    container_name: db
+    networks:
+      - sharefly
+    environment:
+      MYSQL_ROOT_PASSWORD: 263500
+      MYSQL_DATABASE: server
+    ports:
+      - 3306:3306
+  app:
+    build: .
+    restart: always
+    container_name: app
+    networks:
+      - sharefly
+    ports:
+      - 7788:3000
+    depends_on:
+      - redis
+      - db
+
+volumes:
+  redis_volume_data:
+
+networks:
+  sharefly:
+    driver: bridge
+
+  
+```
+
+- `networks`共享同一网络，host 直接改成服务名访问
+
 ## 编程范式
 
 ### 函数式编程特点
@@ -614,7 +667,7 @@ p.y // 10
 
 ### 装饰器的执行步骤如下
 
-1. 计算各个装饰器的值，按照从左到右，从上到下的顺序。
+1. 计算各个装饰器的值，按照从左到右，从上到下的顺序。但是执行却是从下到上，从右往左执行
 2. 调用方法装饰器。
 3. 调用类装饰器。
 
@@ -859,6 +912,10 @@ IOC是一种设计模式，DI是IOC的具体实现
 
 ![DI](./assets/imgs/DI.png)
 
+#### DI 依赖注入原理
+
+Provider 提供token令牌和需要实例化的类或则字面量实例、工厂函数返回的实例，在需要注入的地方用@inject(token)传入的token去获取nest帮我们生成的实例
+
 #### controller中appService查找顺序
 
 1. 首先看app module中providers没有AppService
@@ -870,6 +927,18 @@ IOC是一种设计模式，DI是IOC的具体实现
 ### 生命周期
 
 ![hook](./assets/imgs/lifeHook.png)
+
+### **使用场景对比**
+
+|    组件    |                           典型场景                           |
+| :--------: | :----------------------------------------------------------: |
+| **中间件** |      日志记录、跨域处理、请求体解析（如 `body-parser`）      |
+|  **守卫**  |                      角色验证、JWT 鉴权                      |
+| **拦截器** |            统一响应格式、性能监控（记录请求耗时）            |
+|  **管道**  | 参数类型转换（如 `ParseIntPipe`）、DTO 校验（如 `class-validator`） |
+| **过滤器** |          全局异常处理（如数据库查询失败、权限不足）          |
+
+通过合理组合这些组件，可以实现高内聚、低耦合的请求处理流程
 
 ### nest用模块来组织代码
 
@@ -972,6 +1041,70 @@ export class AppModule {}
 - [邮箱SMTPS服务](https://wx.mail.qq.com/account/index?sid=zTxNS4xQSUkuxDNvAJRieQAA#/?tab=safety&r=1746333737487)
 
 ***不需要全局注入？？？MailerService***
+
+### [nest管道校验](https://docs.nestjs.com/techniques/validation)
+
+```typescript
+import { Module, ValidationPipe } from '@nestjs/common';
+import { APP_PIPE } from '@nestjs/core';
+
+@Module({
+  providers: [
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({ whitelist: true }),
+    },
+  ],
+})
+export class ValidatorModule {}
+
+```
+
+- `whitelist`任何未包含在白名单中的属性都会自动从结果对象中移除
+
+```typescript
+import { IsString, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+export class CreateUser {
+  @IsString()
+  firstName: string;
+
+  @IsArray()
+  @ValidateNested({ each: true }) // 启用嵌套验证，each: true 表示验证数组每个元素[1,2](@ref)
+  @Type(() => Photos)
+  photos: Photos[];
+}
+
+export class Photos {
+  @IsString()
+  url: string;
+
+  @IsString()
+  url1: string;
+}
+
+```
+
+### [nest JWT](https://docs.nestjs.com/security/authentication#authentication)
+
+### [nest 鉴权](https://docs.nestjs.com/security/authorization)
+
+- [权限装饰器](https://docs.nestjs.com/fundamentals/execution-context#reflection-and-metadata)
+
+- 角色+策略来动态控制接口权限: 通过路由守卫获取该模块和该方法拼接出的权限装饰器，查询该用户有无权限，动态返回
+- 抽离出`userService`的通用接口和token来动态注入到守卫当中
+
+### [nest 密码加密](https://docs.nestjs.com/security/encryption-and-hashing)
+
+- salt 的作用，加密的是时候加入salt，防止彩虹表攻击
+
+### [nest 拦截器做响应格式标准化](https://docs.nestjs.com/interceptors#interceptors)
+
+### [nest 利用拦截器对返回数据序列化](https://docs.nestjs.com/techniques/serialization)
+
+### [nest api文档](https://docs.nestjs.com/openapi/introduction)
+
+- [BearerAuth](https://docs.nestjs.com/openapi/security)
 
 ### [数据库](https://docs.nestjs.com/techniques/database)
 
@@ -1209,3 +1342,70 @@ export class Photo {
 运行应用程序后，ORM 将创建一个**album_photos_photo_albums** *连接表*：
 
 ![manyToMany](./assets/imgs/manyToMany.png)
+
+#### [数据库迁移](https://typeorm.io/migrations#creating-a-new-migration)
+
+TypeORM 的 `synchronize: true` 在生产环境中不安全
+
+当实体类中的字段名或属性被修改时，TypeORM 的同步机制可能通过**删除旧列并创建新列**的方式更新表结构，而非直接修改原有列。这会导致原列中的数据被清空。
+
+##### 自动生成迁移文件
+
+```bash
+typeorm-ts-node-commonjs migration:generate ./migrations/user -d ./scripts/migration.ts
+```
+
+- `./migrations/user `为迁移文件生成的目录
+- `./scripts/migration.ts`为数据源配置文件的路径
+
+##### 执行迁移
+
+```bash
+typeorm-ts-node-commonjs migration:run -d ./scripts/migration.ts
+```
+
+- `./scripts/migration.ts`为数据源配置文件的路径
+
+- 要执行的迁移文件写在配置文件的`migrations`字段中
+
+  ```typescript
+  import { join } from 'path';
+  import { DataSource } from 'typeorm';
+  
+  export default new DataSource({
+    type: 'mysql',
+    host: 'localhost',
+    port: 3306,
+    username: 'root',
+    password: '263500',
+    database: 'server',
+    entities: [join(__dirname, '../src/**/*.entity.ts')],
+    // 要为此连接加载迁移的文件
+    migrations: [join(__dirname, '../migrations/*.ts')],
+    // 【注意】设置为false
+    synchronize: false,
+    logging: true,
+  });
+  
+  ```
+
+##### 恢复迁移
+
+```bash
+typeorm-ts-node-commonjs migration:revert -d scripts/migration.ts
+```
+
+##### 迁移记录
+
+TypeORM 执行迁移时会在数据库中生成一条迁移记录，用于跟踪哪些迁移已被应用
+
+当运行 `typeorm migration:run` 时，TypeORM 会执行以下操作
+
+- 检查 `migrations` 表中已存在的记录；
+- 对比未执行的迁移文件（按时间戳排序）；
+- 依次执行新迁移的 `up()` 方法中的 SQL 语句；
+- 成功执行后，将迁移信息插入 `migrations` 表。
+
+### 坑点
+
+- 不能在src目录以外写脚本文件，不然打包生成的目录有问题

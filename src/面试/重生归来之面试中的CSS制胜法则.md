@@ -61,7 +61,7 @@
 7. `will-change`指定的属性值为上面任意一个。
 8. 元素的`-webkit-overflow-scrolling`设为`touch`.
 
-### 面回答
+### 面试回答
 
 **层叠上下文**就是对HTML 元素的一个三维构想，元素在Z轴上按优先级排列
 
