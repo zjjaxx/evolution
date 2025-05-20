@@ -20,7 +20,7 @@
 
 - [重生归来之重学tsup](./src/面试/重生归来之重学tsup.md)
 
-- [重生归来之重学tsup](./src/面试/重生归来之重学tsup.md)
+- [重生归来之重学gsap](./src/面试/重生归来之重学gsap.md)
   
 - [重生归来之重学rxjs](./src/面试/重生归来之重学rxjs.md)
 
