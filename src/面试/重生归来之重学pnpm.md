@@ -32,28 +32,17 @@
 pnpm --filter <package_selector> <command>
 ```
 
-### pnpm link
+### pnpm link(好像有什么bug)
 
 ```bash
-pnpm link 
-pnpm link <pkg name> 
+pnpm setup
+pnpm link --global
 ```
 
-demo
+### pnpm unlink (好像有什么bug)
 
 ```bash
-cd ~/projects/foo
-pnpm install # 安装 foo 的依赖
-pnpm link # 全局链接 foo
-cd ~/projects/my-project
-pnpm link foo # 链接 foo 到 my-project
-```
-
-### pnpm unlink
-
-```bash
-pnpm unlink 
-pnpm unlink <pkg name> 
+pnpm remove <pkg name> -g
 ```
 ## monorepo管理
 ### pnpm-workspace.yaml

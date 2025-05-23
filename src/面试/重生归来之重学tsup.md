@@ -97,12 +97,13 @@ tsup-node src/index.ts
 
 `tsup.config.ts`
 
-```
+```typescript
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
   entry: ['src/index.ts'],
   splitting: false,
+  outDir: 'bin',
   sourcemap: true,
   dts:true,
   watch:true,
@@ -136,3 +137,5 @@ export default defineConfig({
 - Inject cjs and esm shims
 
   启用该选项后，在构建ESM/CJS模块时会自动填充部分代码以确保功能正常，例如仅CJS模块可用的__dirname变量以及仅ESM模块可用的import.meta.url属性。
+
+- outDir 输出目录
