@@ -15,3 +15,4 @@
 - [重生归来之重学rxjs](./src/面试/重生归来之重学rxjs.md)
 - [重生归来之重学handlebars](./src/面试/重生归来之重学handlebars.md)
 - [重生归来之nest脚手架](./src/面试/重生归来之nest脚手架.md)
+- [重生归来之模块系统](./src/面试/重生归来之模块系统.md)
