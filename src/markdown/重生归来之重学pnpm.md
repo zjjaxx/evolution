@@ -5,16 +5,19 @@
   - [面试回答](#面试回答)
 - [常用命令](#常用命令)
   - [过滤](#过滤)
-  - [pnpm link](#pnpm-link)
-  - [pnpm unlink](#pnpm-unlink)
+  - [pnpm link(好像有什么bug)](#pnpm-link好像有什么bug)
+  - [pnpm unlink (好像有什么bug)](#pnpm-unlink-好像有什么bug)
+- [依赖提升](#依赖提升)
 - [monorepo管理](#monorepo管理)
   - [pnpm-workspace.yaml](#pnpm-workspaceyaml)
 - [工作空间协议](#工作空间协议)
 - [发布流程](#发布流程)
 
+
 ## pnpm优势
 ### 相关资料
 [pnpm官网](https://pnpm.io/zh/motivation)
+
 ### 面试回答
 1. 节省磁盘空间
    跨项目地共享同一版本的依赖，所有的三方依赖都会被存储在硬盘上的某一位置，当软件包被被安装时，包里的文件会硬链接到这一位置，而不会占用额外的磁盘空间。 
@@ -44,7 +47,18 @@ pnpm link --global
 ```bash
 pnpm remove <pkg name> -g
 ```
+## 依赖提升
+
+在`.npmrc`中设置
+
+```.npmrc
+shamefully-hoist=true
+```
+
+
+
 ## monorepo管理
+
 ### pnpm-workspace.yaml
 ```yaml
 packages:

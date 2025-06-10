@@ -116,7 +116,6 @@ createRenderer(rendererOptions))
           - 如果模版setup方法参数大于1，则创建setupContext上下文，该对象有组件实例上的attrs、slots、emit、*exposed*属性对象
           - 执行组件模版的setup方法，第一个参数为组件实例的props，第二个参数为setupContext上下文
           - 处理setupResult结果，如果返回的是函数的话，则作为组件实例的render方法，如果是对象的话，则代理这个对象的get和set进行自动引用解包
-          - 把组件模版的render方法设置为组件实例的render方法
 
         - 开始准备渲染组件
           - 新建一个响应式副作用ReactiveEffect，在副作用中进行组件的挂载和更新
@@ -125,7 +124,7 @@ createRenderer(rendererOptions))
             - 在执行render函数过程中触发响应式对象的get拦截，新建一个Dep依赖对象，执行dep的track方法
               - 新建一个Link对象来关联dep对象和activeSub(也就是当前执行的响应式副作用ReactiveEffect)
             - 保存render函数生成vnode到组件实例的subTree属性上
-            - 执行patch方法递归渲染组件模版
+            - 执行patch方法递归渲染
 
 
 
@@ -145,11 +144,11 @@ createRenderer(rendererOptions))
 
 - ***(更新时触发)*** 从前往后遍历当前sub的link节点，把每个link的version设置为-1，为之后清理无效link做准备，保存原先的dep的activeLink到prevActiveLink中，然后把dep的activeLink设置为当前link
 
-- 保存全局activeSub到prevEffect变量中，设置全局activeSub为当前sub，这是为了支持组件嵌套，开始执行，触发响应式对象的track/computed计算属性的get value方法
+- 保存全局activeSub到prevEffect变量中，设置全局activeSub为当前sub，这是为了支持组件嵌套，开始执行，触发响应式对象的get/computed计算属性的get value方法
 
   - (每一个响应式对象的key属性/或则computed)都会对应一个dep依赖，dep依赖和sub是多对多的关系，通过link的双向链表来存储它们之间的关系
 
-  - 如果dep中activeLink指针没有引用对象，或者当前link在别的sub中使用
+  - 如果dep中activeLink指针没有引用对象，或者当前link在计算属性中使用
 
     - 新建link存储当前sub和dep，version属性等于dep的version
 
@@ -204,7 +203,37 @@ createRenderer(rendererOptions))
 
     - 计算属性的` dep.version++`后变为需要更新，开始执行副作用和重新收集依赖
 
+### 面试回答
+
+[在vue3.5的版本中对响应式系统进行了修改，采用了双向链表来提高内存效率](https://github.com/vuejs/core/blob/main/CHANGELOG.md)。
+
+**为什么在内存优化方面起到大作用？** vue3.5之前，Sub依赖的dep是一个集合，每次执行副作用前将集合清空，频繁的集合清空操作，GC也不能立即执行，所以内存释放慢。
+
+- 收集依赖
+
+​	每一个响应式对象的key属性都会对应一个dep依赖，dep依赖和副作用是多对多的关系，通过link的双向链表来存储它们之间的关系
+
+执行副作用触发get方法会生成dep依赖，新建link存储当前副作用和依赖，version属性等于依赖的version，如果当前没有link，则副作用的首尾指针都指向link，如果有则把link挂到链表最后，如果当前dep依赖有在上一个副作用中被收集过，同时把link挂到上一个link下面，这样就形成了双向链表,如果是计算属性的话，则执行计算属性，同时计算属性作为副作用并且收集依赖生成link链表
+
+- 触发更新
+
+​	找到触发的dep依赖,dep的version字段++,把dep竖直方向的link链表遍历，生成2个链表，一个是副作用链表，一个是计算属性链表，其中计算属性依赖的副作用也会加到副作用链表中，遍历副作用链表，先查看副作用是否需要更新，遍历副作用中的link的version和dep的version是否相等来看每个副作用需不需要更新，如果是计算属性的话，还需要递归去找计算属性的副作用中的link的version和dep的version是否相等来判断计算属性是否需要更新，如果计算属性需要更新就重新执行，并且计算属性的` dep.version++`。
+
+-  重新收集依赖
+
+  把每个link的version设置为-1，为之后清理无效link做准备，如果又被重新收集的话更新link的version等于dep的version，最后清理依赖，把link的指针都断开，等待GC
+
+
+
 ## 组件系统
+
+### 组件的异步更新
+
+自定义副作用对象的scheduler函数，每次触发更新的时候执行scheduler函数，把副作用的更新函数放到全局队列中，通过Promise.resolve()把执行队列放到微任务中，同时设置每个组件的更新函数不能重复添加
+
+### nextTick原理
+
+每次组件异步更新完在then方法中添加nextTick函数
 
 ## 渲染系统
 
@@ -240,5 +269,94 @@ keepalive组件可以避免一个组件被频繁的销毁和重建
 3. 当keepalive组件是动态插槽时，有响应式数据更新，keepalive的render函数会重新渲染，从缓存map中获取vnode,如果存在，则把组件实例放到插槽中的vnode中，并标记改vnode为keptAlive，避免渲染器重新挂载它，不存在就缓存它
 4. 当卸载时调用调用父组件keepAlive实例上的deActivate回调钩子把节点移动到隐藏容器中，当重新挂载是父组件keepAlive实例上的activate回调把节点移回原来的容器
 
+## 单文件组件 CSS scope 原理
 
+它的实现方式是通过 PostCSS 将 类选择器转化为类+属性选择器，属性进行哈希处理，但是子组件的根节点会同时被父组件的作用域样式影响,你可以直接在父组件上写类选择器，这样设计是为了让父组件可以从布局的角度出发，调整其子组件根元素的样式。
 
+### 深度选择器
+
+```vue
+<style scoped>
+.a :deep(.b) {
+  /* ... */
+}
+</style>
+```
+
+上面的代码会被编译成：
+
+```vue
+.a[data-v-f3f3eg9] .b {
+  /* ... */
+}
+```
+
+### 全局选择器
+
+如果想让其中一个样式规则应用到全局，比起另外创建一个 `<style>`，可以使用 `:global` 伪类来实现 (看下面的代码)：
+
+```vue
+<style scoped>
+:global(.red) {
+  color: red;
+}
+</style>
+```
+
+### CSS Modules
+
+作用和css scoped一样,一个 `<style module>` 标签会被编译为 [CSS Modules](https://github.com/css-modules/css-modules) 并且将生成的 CSS class 作为 `$style` 对象暴露给组件：
+
+```vue
+<template>
+  <p :class="$style.red">This should be red</p>
+</template>
+
+<style module>
+.red {
+  color: red;
+}
+</style>
+```
+
+自定义注入名称
+
+你可以通过给 `module` attribute 一个值来自定义注入 class 对象的属性名：
+
+```vue
+<template>
+  <p :class="classes.red">red</p>
+</template>
+
+<style module="classes">
+.red {
+  color: red;
+}
+</style>
+```
+
+与组合式 API 一同使用,显示声明导入
+
+```vue
+<script setup lang="ts">
+import { useCssModule } from 'vue'
+
+const classes = useCssModule()
+</script>
+
+<template>
+  <p :class="classes.red">red</p>
+</template>
+
+<style module>
+.red {
+  color: red;
+}
+</style>
+```
+
+### CSS 中的 `v-bind()`
+
+可以在css中动态设置样式属性
+
+实际的值会被编译成哈希化的 CSS 自定义属性，因此 CSS 本身仍然是静态的。自定义属性会通过内联样式的方式应用到组件的根元素上，并且在源值变更的时候响应式地更新。就是说在根元素上定义变量，然后再通过var来加载变量
